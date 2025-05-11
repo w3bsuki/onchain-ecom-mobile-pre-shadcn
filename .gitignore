@@ -1,0 +1,73 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+.next
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Medusa files
+.medusa/
+dist/
+*.sqlite
+.cache/
+uploads/
+build/
+coverage/
+
+# Large files
+*.pack
+*.bundle
+*.gz
+*.zip
+*.tar
+*.tgz
+*.iso
+*.bin
+*.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+
+# System Files
+.DS_Store
+Thumbs.db
