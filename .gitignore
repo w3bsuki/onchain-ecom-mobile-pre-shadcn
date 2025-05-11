@@ -47,6 +47,13 @@ uploads/
 build/
 coverage/
 
+# Medusa specific for Vercel
+/my-medusa-store/.medusa
+/my-medusa-store/node_modules
+/my-medusa-store/dist
+/my-medusa-store/build
+/my-medusa-store/.cache
+
 # Large files
 *.pack
 *.bundle
