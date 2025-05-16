@@ -1,104 +1,128 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { INSTAGRAM_LINK, TIKTOK_LINK } from "src/links";
 import { ExternalLinkSvg } from "src/svg/ExternalLinkSvg";
-import { cn, pressable } from '@coinbase/onchainkit/theme';
+import Link from "next/link";
 
 export default function HeroFashion() {
-    // Primary image
-    const primaryImageUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80";
-
     return (
-        <div className="bg-white h-full w-full">
-            <div className="px-4 py-4 w-full">
-                {/* Image section - larger and more prominent */}
-                <div className="aspect-[3/4] mb-4 overflow-hidden relative rounded-xl w-full max-h-[45vh]">
-                    <div className="-left-10 -top-10 -z-10 absolute bg-[#f8b3c4] blur-3xl h-72 opacity-20 rounded-full w-72" />
+        <div className="relative w-full overflow-hidden">
+            {/* Mobile Hero */}
+            <div className="block md:hidden">
+                <div className="relative h-[70vh] w-full">
                     <Image
-                        src={primaryImageUrl}
-                        alt="Fashion model"
+                        src="/images/hero-mobile.jpg"
+                        alt="Fashion Collection"
                         fill={true}
-                        priority={true}
                         className="object-cover"
-                        onError={() => {}}
+                        priority={true}
                     />
+                    <div className="absolute inset-0 from-black/60 to-transparent bg-gradient-to-t" />
+                    <div className="absolute bottom-0 left-0 w-full p-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-4"
+                        >
+                            <h1 className="text-3xl font-bold text-white">
+                                New Summer <br />Collection
+                            </h1>
+                            <p className="text-sm text-white/90">
+                                Discover the latest trends in fashion
+                            </p>
+                            <Link
+                                href="/products"
+                                className="inline-flex items-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-gray-100"
+                            >
+                                Shop Now
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        </motion.div>
+                    </div>
                 </div>
-                
-                {/* Text section */}
-                <div className="w-full">
-                    <h1 className="font-bold leading-tight mb-4 text-3xl text-black tracking-tighter">
-                        INDECISIVE WEAR
-                    </h1>
-                    <ul className="mb-4 space-y-2 text-black/90 text-base tracking-tighter">
-                        {[
-                            "Ready-to-wear",
-                            "Accessories",
-                            "Footwear",
-                            "Leather goods",
-                            "Jewelry",
-                        ].map((item, index) => (
-                            <motion.li
-                                key={item}
-                                initial={{ opacity: 0.8 }}
-                                whileHover={{
-                                    opacity: 1,
-                                    y: -2,
-                                    transition: {
-                                        duration: 0.3,
-                                        ease: "easeOut",
-                                    },
-                                }}
-                                transition={{
-                                    delay: index * 0.1,
-                                }}
-                            >
-                                <a href="/" className="cursor-pointer font-medium">
-                                    {item}
-                                </a>
-                            </motion.li>
-                        ))}
-                    </ul>
-                    <div>
-                        <h2 className="font-medium mt-4 text-black text-xl">
-                            SUMMER 2024
-                        </h2>
-                        <p className="max-w-md pt-2 text-black/95 text-sm tracking-tight">
-                            The future of commerce is less fee. More creativity.
-                        </p>
-                        
-                        {/* Social icons */}
-                        <div className="flex items-center mt-4 space-x-4">
-                            <a 
-                                href={INSTAGRAM_LINK} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className={cn(
-                                    "flex items-center text-sm",
-                                    pressable.default
-                                )}
-                            >
-                                INSTAGRAM
-                                <span className="pl-1">
-                                    <ExternalLinkSvg />
-                                </span>
-                            </a>
-                            <a 
-                                href={TIKTOK_LINK} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className={cn(
-                                    "flex items-center text-sm",
-                                    pressable.default
-                                )}
-                            >
-                                TIKTOK
-                                <span className="pl-1">
-                                    <ExternalLinkSvg />
-                                </span>
-                            </a>
-                        </div>
+            </div>
+
+            {/* Desktop Hero */}
+            <div className="hidden md:block">
+                <div className="grid h-[600px] grid-cols-2 gap-4">
+                    <div className="flex items-center justify-center bg-gray-50 p-12">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-6 max-w-lg"
+                        >
+                            <span className="inline-block rounded-full bg-black px-4 py-2 text-sm font-medium text-white">
+                                New Collection
+                            </span>
+                            <h1 className="text-5xl font-bold leading-tight text-gray-900">
+                                Summer Sale Stylish
+                                <br />
+                                <span className="text-gray-500">Collection</span>
+                            </h1>
+                            <p className="text-gray-600">
+                                Discover our curated collection of summer essentials. Fresh styles added weekly.
+                            </p>
+                            <div className="flex gap-4">
+                                <Link
+                                    href="/products"
+                                    className="inline-flex items-center rounded-full bg-black px-8 py-4 font-medium text-white transition-colors hover:bg-gray-900"
+                                >
+                                    Shop Collection
+                                    <ShoppingBag className="ml-2 h-5 w-5" />
+                                </Link>
+                                <Link
+                                    href="/categories"
+                                    className="inline-flex items-center rounded-full border border-gray-200 bg-white px-8 py-4 font-medium text-gray-900 transition-colors hover:bg-gray-50"
+                                >
+                                    Browse Categories
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                    <div className="relative h-full">
+                        <Image
+                            src="/images/hero-desktop.jpg"
+                            alt="Fashion Collection"
+                            fill={true}
+                            className="object-cover"
+                            priority={true}
+                        />
+                        {/* Floating Promotion Card */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="absolute bottom-8 right-8 rounded-xl bg-white p-4 shadow-lg"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="relative h-16 w-16 overflow-hidden rounded-lg">
+                                    <Image
+                                        src="/images/promo-product.jpg"
+                                        alt="Promotional Product"
+                                        fill={true}
+                                        className="object-cover"
+                                        priority={true}
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">Summer Sale</p>
+                                    <p className="text-xs text-gray-500">Up to 50% off</p>
+                                    <Link
+                                        href="/products?category=sale"
+                                        className="mt-2 inline-flex items-center text-xs font-medium text-black hover:underline"
+                                    >
+                                        Shop Now
+                                        <ArrowRight className="ml-1 h-3 w-3" />
+                                    </Link>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

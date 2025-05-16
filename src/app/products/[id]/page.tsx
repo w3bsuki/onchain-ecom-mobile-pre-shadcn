@@ -6,8 +6,11 @@ import { useOnchainStoreContext } from 'src/components/OnchainStoreProvider';
 import ProductImage from 'src/components/ProductImage';
 import Navbar from 'src/components/Navbar';
 import { Banner } from 'src/components/Banner';
-import { Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp, Share2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import MobileBottomNav from 'src/components/MobileBottomNav';
+import { cn } from '@coinbase/onchainkit/theme';
+import ProductImageGallery from 'src/components/ProductImageGallery';
 
 export default function ProductPage() {
   const params = useParams();
@@ -16,6 +19,30 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>('description');
+  const [isMobile, setIsMobile] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Check if on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Scroll detection for sticky header
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 120);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // Find the product with matching ID
   const product = products?.find((p) => p.id === productId);
@@ -65,6 +92,7 @@ export default function ProductPage() {
             </Link>
           </div>
         </main>
+        <MobileBottomNav />
       </div>
     );
   }
@@ -74,33 +102,47 @@ export default function ProductPage() {
       <Banner />
       <Navbar />
       
-      <main className="container mx-auto flex-grow px-4 pt-24">
-        {/* Breadcrumb */}
-        <div className="mb-6 text-sm">
+      <main className="container mx-auto flex-grow px-4 pt-16 md:pt-24">
+        {/* Mobile Back Button - only visible on mobile */}
+        <div className="flex items-center mb-4 md:hidden">
+          <Link href="/" className="flex items-center text-gray-600">
+            <ArrowLeft size={18} className="mr-1" />
+            <span>Back</span>
+          </Link>
+        </div>
+        
+        {/* Breadcrumb - hidden on mobile */}
+        <div className="mb-6 text-sm hidden md:block">
           <Link href="/" className="hover:underline">Home</Link> / 
-          <Link href="/products" className="mx-2 hover:underline">Products</Link> / 
+          <Link href="/" className="mx-2 hover:underline">Products</Link> / 
           <span className="font-medium">{product.name}</span>
         </div>
         
         {/* Product Details */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Product Image */}
-          <div className="flex items-center justify-center rounded-lg border border-gray-200 p-6">
-            <ProductImage 
-              src={typeof product.image === 'string' ? product.image : null}
-              alt={product.name}
-              className="max-h-[500px] w-auto object-contain"
-              width={500}
-              height={500}
+          {/* Product Image with gallery component */}
+          <div className="mb-4 md:mb-0 md:sticky md:top-24">
+            <ProductImageGallery 
+              mainImage={typeof product.image === 'string' ? product.image : null}
+              altImages={[]} // In a real app, you would pass alternative product images here
+              productName={product.name}
             />
           </div>
           
           {/* Product Info */}
-          <div>
-            <h1 className="mb-2 text-3xl font-bold">{product.name}</h1>
+          <div className="relative">
+            {/* Share button - desktop only */}
+            <button 
+              className="absolute right-0 top-0 rounded-full bg-gray-100 hidden md:flex items-center justify-center p-2"
+              aria-label="Share product"
+            >
+              <Share2 size={16} />
+            </button>
+            
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
             
             {/* Rating */}
-            <div className="mb-4 flex items-center">
+            <div className="flex items-center mb-4">
               <div className="flex mr-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -117,9 +159,9 @@ export default function ProductPage() {
               </span>
             </div>
             
-            <p className="mb-6 text-2xl font-bold">{product.price.toFixed(2)} USDC</p>
+            <p className="text-xl md:text-2xl font-bold mb-4 md:mb-6">{product.price.toFixed(2)} USDC</p>
             
-            <p className="mb-6 text-gray-700">
+            <p className="mb-6 text-gray-700 text-sm md:text-base">
               This premium product offers exceptional quality and value. Perfect for everyday use or special occasions.
             </p>
             
@@ -151,19 +193,20 @@ export default function ProductPage() {
                   +
                 </button>
               </div>
+
             </div>
             
-            {/* Add to Cart Button */}
+            {/* Add to Cart Button - Regular position for desktop */}
             <button
               type="button"
-              className="mb-6 w-full rounded bg-black px-6 py-3 text-white hover:bg-gray-800"
+              className="hidden md:block w-full rounded bg-black px-6 py-3 text-white hover:bg-gray-800"
               onClick={handleAddToCart}
             >
               Add to Cart
             </button>
             
             {/* Product Information Accordion */}
-            <div className="border-t border-gray-200">
+            <div className="border-t border-gray-200 mt-6">
               {/* Description Section */}
               <div className="border-b border-gray-200 py-4">
                 <button
@@ -216,8 +259,8 @@ export default function ProductPage() {
         </div>
         
         {/* Reviews Section */}
-        <div className="mt-16">
-          <h2 className="mb-6 text-2xl font-bold">Customer Reviews</h2>
+        <div className="mt-12 md:mt-16">
+          <h2 className="mb-6 text-xl md:text-2xl font-bold">Customer Reviews</h2>
           
           {reviews.map((review) => (
             <div key={review.id} className="mb-6 border-b border-gray-200 pb-6">
@@ -244,8 +287,8 @@ export default function ProductPage() {
           
           {/* Review Form Placeholder */}
           <div className="mb-16 rounded-lg border border-gray-200 p-6">
-            <h3 className="mb-4 text-xl font-bold">Write a Review</h3>
-            <p className="mb-4 text-gray-600">Share your thoughts about this product with other customers.</p>
+            <h3 className="mb-4 text-lg md:text-xl font-bold">Write a Review</h3>
+            <p className="mb-4 text-sm md:text-base text-gray-600">Share your thoughts about this product with other customers.</p>
             <button
               type="button"
               className="rounded bg-black px-6 py-2 text-white hover:bg-gray-800"
@@ -257,16 +300,16 @@ export default function ProductPage() {
         
         {/* Related Products */}
         <div className="mb-16">
-          <h2 className="mb-8 text-2xl font-bold">You May Also Like</h2>
+          <h2 className="mb-6 text-xl md:text-2xl font-bold">You May Also Like</h2>
           
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {relatedProducts.map((relatedProduct) => (
               <Link
                 href={`/products/${relatedProduct.id}`}
                 key={relatedProduct.id}
-                className="group rounded-lg border border-gray-200 p-4 transition hover:shadow-md"
+                className="group rounded-lg border border-gray-200 p-3 md:p-4 transition hover:shadow-md"
               >
-                <div className="mb-4 h-48 overflow-hidden">
+                <div className="mb-3 aspect-square overflow-hidden">
                   <ProductImage
                     src={typeof relatedProduct.image === 'string' ? relatedProduct.image : null}
                     alt={relatedProduct.name}
@@ -275,13 +318,31 @@ export default function ProductPage() {
                     height={200}
                   />
                 </div>
-                <h3 className="mb-1 font-medium">{relatedProduct.name}</h3>
-                <p className="font-bold">{relatedProduct.price.toFixed(2)} USDC</p>
+                <h3 className="mb-1 text-sm md:text-base font-medium truncate">{relatedProduct.name}</h3>
+                <p className="text-sm md:text-base font-bold">{relatedProduct.price.toFixed(2)} USDC</p>
               </Link>
             ))}
           </div>
         </div>
       </main>
+      
+      {/* Sticky Add to Cart bar for mobile */}
+      <div 
+        className={cn(
+          "fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-3 md:hidden z-30 transition-transform duration-200",
+          !scrolled ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
+        )}
+      >
+        <button
+          type="button"
+          className="w-full rounded bg-black px-6 py-3 text-white font-medium"
+          onClick={handleAddToCart}
+        >
+          Add to Cart - {product.price.toFixed(2)} USDC
+        </button>
+      </div>
+      
+      <MobileBottomNav />
     </div>
   );
 } 

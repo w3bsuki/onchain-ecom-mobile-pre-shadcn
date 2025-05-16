@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { OnchainStoreContextType } from '../types';
 import jacketImage from '../images/jacket.png';
@@ -20,6 +20,13 @@ type OnchainStoreProviderReact = {
 
 // Fallback products in case the API call fails
 const fallbackProducts: Product[] = [
+  // TEST PRODUCT - Added to verify our changes are working
+  { 
+    id: 'test-product', 
+    name: `⚠️ TEST PRODUCT - MOBILE OPTIMIZED VERSION ⚠️`, 
+    price: 99.99,
+    image: bottleImage 
+  },
   { id: 'product1', name: `'BUILDER' JACKET`, price: 0.04, image: jacketImage },
   {
     id: 'product2',
@@ -44,6 +51,32 @@ const fallbackProducts: Product[] = [
 export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
   const [quantities, setQuantities] = useState({});
   const { products: medusaProducts, loading, error } = useProducts();
+  
+  // Use the config value instead of hard-coding
+  const useFallback = USE_FALLBACK_PRODUCTS;
+  
+  // Add cart management functions
+  const setQuantity = useCallback((productId: string, quantity: number) => {
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [productId]: quantity,
+    }));
+  }, []);
+
+  const addToCart = useCallback((productId: string) => {
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [productId]: (prevQuantities[productId] || 0) + 1,
+    }));
+  }, []);
+
+  const removeFromCart = useCallback((productId: string) => {
+    setQuantities((prevQuantities) => {
+      const newQuantities = { ...prevQuantities };
+      delete newQuantities[productId];
+      return newQuantities;
+    });
+  }, []);
   
   // Process Medusa products to ensure images work properly
   const processedMedusaProducts = useMemo(() => {
@@ -75,7 +108,7 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
   
   // Use Medusa products if available, otherwise fallback to hardcoded products
   const products = useMemo(() => {
-    if (USE_FALLBACK_PRODUCTS || error || !processedMedusaProducts || processedMedusaProducts.length === 0) {
+    if (useFallback || error || !processedMedusaProducts || processedMedusaProducts.length === 0) {
       console.log('Using fallback products');
       return fallbackProducts;
     }
@@ -86,16 +119,19 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
     }
     
     return processedMedusaProducts;
-  }, [processedMedusaProducts, error]);
+  }, [processedMedusaProducts, error, useFallback]);
 
   const value = useMemo(() => {
     return {
       quantities,
       setQuantities,
+      setQuantity,
+      addToCart,
+      removeFromCart,
       products,
-      loading: USE_FALLBACK_PRODUCTS ? false : loading,
+      loading: useFallback ? false : loading,
     };
-  }, [quantities, products, loading]);
+  }, [quantities, setQuantities, setQuantity, addToCart, removeFromCart, products, loading, useFallback]);
 
   return (
     <OnchainStoreContext.Provider value={value}>

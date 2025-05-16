@@ -101,8 +101,8 @@ export async function getProducts() {
               console.log(`Final thumbnail URL: ${p.thumbnail}`);
             } else {
               console.log(`Product ${p.id} - ${p.title} has NO thumbnail`);
-              // Set default thumbnail for products without images
-              p.thumbnail = 'https://via.placeholder.com/300x300?text=Product';
+              // Set better thumbnail for products without images
+              p.thumbnail = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&h=300&fit=crop';
             }
           });
         } else {
@@ -154,8 +154,8 @@ export async function getProducts() {
           console.log(`Final thumbnail URL: ${p.thumbnail}`);
         } else {
           console.log(`Product ${p.id} - ${p.title} has NO thumbnail`);
-          // Set default thumbnail for products without images
-          p.thumbnail = 'https://via.placeholder.com/300x300?text=Product';
+          // Set better thumbnail for products without images
+          p.thumbnail = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&h=300&fit=crop';
         }
       });
     } else {

@@ -1,170 +1,203 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { CreditCard, Check, AlertCircle, Loader2 } from 'lucide-react';
 
-// Load Stripe outside of component to avoid recreating it on every render
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+interface StripePaymentFormProps {
+  amount: number;
+  description: string;
+  onSuccess?: () => void;
+}
 
-// The form that collects payment details
-function CheckoutForm({ amount, onSuccess }: { amount: number; onSuccess: () => void }) {
+export default function StripePaymentForm({
+  amount,
+  description,
+  onSuccess,
+}: StripePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [billingDetails, setBillingDetails] = useState({
+    email: '',
+    name: '',
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js hasn't loaded yet
+      // Stripe.js has not loaded yet
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
+    if (!cardComplete) {
+      setError('Please complete your card details.');
+      return;
+    }
+
+    if (!billingDetails.name.trim() || !billingDetails.email.trim()) {
+      setError('Please provide your name and email.');
+      return;
+    }
+
+    setProcessing(true);
+    setError(null);
 
     try {
-      // Confirm the payment
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/payment-success`,
+      // Create a payment intent on the server
+      const response = await fetch('/api/payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: amount,
+          description: description,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const { clientSecret } = await response.json();
+
+      // Confirm the payment with the card element
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement)!,
+          billing_details: {
+            name: billingDetails.name,
+            email: billingDetails.email,
+          },
         },
       });
 
-      if (error) {
-        setErrorMessage(error.message || 'An unknown error occurred');
-      } else {
-        // Payment succeeded!
-        onSuccess();
+      setProcessing(false);
+
+      if (result.error) {
+        setError(result.error.message || 'An error occurred while processing your payment.');
+      } else if (result.paymentIntent.status === 'succeeded') {
+        setPaymentSuccess(true);
+        if (onSuccess) setTimeout(onSuccess, 2000); // Give time to see success message
       }
-    } catch (error: any) {
-      setErrorMessage(error.message || 'An unknown error occurred');
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      setProcessing(false);
+      setError('An error occurred. Please try again later.');
+      console.error('Payment error:', err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md mx-auto">
-      <PaymentElement />
-      {errorMessage && (
-        <div className="text-red-500 text-sm pt-2">{errorMessage}</div>
-      )}
-      <button
-        type="submit"
-        disabled={!stripe || isLoading}
-        className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoading ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
-      </button>
-    </form>
-  );
-}
-
-// Wrapper component that creates the payment intent and sets up Elements
-export default function StripePaymentForm({ 
-  amount, 
-  description = 'Online purchase',
-  currency = 'usd',
-  onSuccess,
-  className = '',
-}: { 
-  amount: number; 
-  description?: string;
-  currency?: string;
-  onSuccess: () => void;
-  className?: string;
-}) {
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function createPaymentIntent() {
-      try {
-        const response = await fetch('/api/stripe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount,
-            description,
-            currency,
-            metadata: {
-              // Add any additional metadata here
-              integration: 'onchain-commerce'
-            }
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create payment intent');
-        }
-
-        setClientSecret(data.clientSecret);
-      } catch (error: any) {
-        console.error('Error creating payment intent:', error);
-        setError(error.message || 'Failed to initialize payment');
-      }
-    }
-
-    if (amount > 0) {
-      createPaymentIntent();
-    }
-  }, [amount, description, currency]);
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500 py-4">
-        <p>Payment initialization failed: {error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-2 underline"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
-
-  if (!clientSecret) {
-    return (
-      <div className="text-center py-4">
-        <div className="animate-pulse space-y-2">
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded"></div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 flex items-start p-3 rounded-md text-red-800 text-sm">
+          <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          <p>{error}</p>
         </div>
-      </div>
-    );
-  }
+      )}
+      
+      {paymentSuccess ? (
+        <div className="bg-green-50 border border-green-200 flex flex-col items-center p-6 rounded-md text-center">
+          <div className="bg-green-100 flex h-12 items-center justify-center mb-3 rounded-full w-12">
+            <Check className="text-green-600" size={24} />
+          </div>
+          <h3 className="font-medium mb-1 text-green-800 text-lg">Payment Successful!</h3>
+          <p className="text-green-700 text-sm">Your payment has been processed successfully.</p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block font-medium mb-1 text-gray-700 text-sm">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={billingDetails.name}
+                onChange={(e) => setBillingDetails({ ...billingDetails, name: e.target.value })}
+                required
+                className="block border border-gray-300 p-2 rounded-md text-sm w-full focus:border-gray-500 focus:outline-none focus:ring-0"
+                placeholder="John Doe"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="email" className="block font-medium mb-1 text-gray-700 text-sm">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={billingDetails.email}
+                onChange={(e) => setBillingDetails({ ...billingDetails, email: e.target.value })}
+                required
+                className="block border border-gray-300 p-2 rounded-md text-sm w-full focus:border-gray-500 focus:outline-none focus:ring-0"
+                placeholder="you@example.com"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="card" className="block font-medium mb-1 text-gray-700 text-sm">
+                Card Information
+              </label>
+              <div className="border border-gray-300 p-3 rounded-md">
+                <CardElement
+                  id="card"
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#424770',
+                        '::placeholder': {
+                          color: '#aab7c4',
+                        },
+                      },
+                      invalid: {
+                        color: '#9e2146',
+                      },
+                    },
+                  }}
+                  onChange={(e) => setCardComplete(e.complete)}
+                />
+              </div>
+              <p className="mt-1 text-gray-500 text-xs">
+                Test card: 4242 4242 4242 4242 | Any future expiry date | Any CVC
+              </p>
+            </div>
+          </div>
 
-  return (
-    <div className={className}>
-      <Elements
-        stripe={stripePromise}
-        options={{
-          clientSecret,
-          appearance: {
-            theme: 'stripe',
-            variables: {
-              colorPrimary: '#000000',
-              colorBackground: '#ffffff',
-              colorText: '#000000',
-            },
-          },
-        }}
-      >
-        <CheckoutForm amount={amount} onSuccess={onSuccess} />
-      </Elements>
-    </div>
+          <div className="border-t border-gray-200 flex items-center justify-between mt-4 pt-4">
+            <div className="text-gray-700 text-sm">
+              <p className="font-medium">Total</p>
+              <p className="text-lg font-semibold">${(amount / 100).toFixed(2)}</p>
+            </div>
+            
+            <button
+              type="submit"
+              disabled={!stripe || processing}
+              className="bg-[#635bff] flex font-medium items-center justify-center px-6 py-2.5 rounded-md text-white transition-colors hover:bg-[#4b45c0] disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {processing ? (
+                <>
+                  <Loader2 size={18} className="animate-spin mr-2" /> 
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={18} className="mr-2" />
+                  Pay ${(amount / 100).toFixed(2)}
+                </>
+              )}
+            </button>
+          </div>
+        </>
+      )}
+    </form>
   );
 } 

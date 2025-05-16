@@ -8,4 +8,3 @@ export const TIKTOK_LINK = 'https://tiktok.com/@indecisivewear';
 export const ONCHAINKIT_LINK = 'https://onchainkit.xyz';
 export const TEMPLATE_LINK =
   'https://github.com/coinbase/onchain-commerce-template';
-export const TWITTER_LINK = 'https://x.com/Onchainkit';

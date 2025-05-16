@@ -5,7 +5,8 @@ import type { Product } from '../types';
 // Direct image URL function
 function getDirectImageUrl(thumbnail: string | null): string {
   if (!thumbnail) {
-    return 'https://via.placeholder.com/300x300?text=Product';
+    // Better placeholder with a product image
+    return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&h=300&fit=crop';
   }
   
   // Construct direct URL to Medusa
@@ -25,19 +26,31 @@ function getDirectImageUrl(thumbnail: string | null): string {
   return thumbnail;
 }
 
-// Reliable fallback products if nothing works
+// Reliable fallback products with better images if nothing works
 const FALLBACK_PRODUCTS: Product[] = [
   {
     id: 'fallback-1',
-    name: 'Sample Product 1',
-    price: 19.99,
-    image: 'https://via.placeholder.com/300x300?text=Sample+1'
+    name: 'Running Shoes',
+    price: 89.99,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=500'
   },
   {
     id: 'fallback-2',
-    name: 'Sample Product 2',
-    price: 29.99,
-    image: 'https://via.placeholder.com/300x300?text=Sample+2'
+    name: 'Leather Wallet',
+    price: 39.99,
+    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=500'
+  },
+  {
+    id: 'fallback-3',
+    name: 'Wireless Headphones',
+    price: 129.99,
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=500'
+  },
+  {
+    id: 'fallback-4',
+    name: 'Minimalist Watch',
+    price: 159.99,
+    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=500'
   }
 ];
 

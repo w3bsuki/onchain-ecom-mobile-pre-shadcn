@@ -48,7 +48,11 @@ export type OnchainStoreContextType = {
   setQuantities: (
     quantities: Quantities | ((prev: Quantities) => Quantities),
   ) => void;
+  setQuantity: (productId: string, quantity: number) => void;
+  addToCart: (productId: string) => void;
+  removeFromCart: (productId: string) => void;
   products?: Product[];
+  loading?: boolean;
 };
 
 export type QuantityInputButtonReact = {

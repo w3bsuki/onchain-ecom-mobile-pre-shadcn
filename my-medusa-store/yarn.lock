@@ -2320,7 +2320,7 @@
   dependencies:
     jsonwebtoken "^9.0.2"
 
-"@medusajs/utils@2.7.1":
+"@medusajs/utils@^2.7.1", "@medusajs/utils@2.7.1":
   version "2.7.1"
   resolved "https://registry.npmjs.org/@medusajs/utils/-/utils-2.7.1.tgz"
   integrity sha512-YIK1DrwfMp5ZyQCaVxN0LjC1qPvA99Cz9Nj+aTbdFDOA4LA+CYx4WJsT/NZCkC/6ff3EaRCL7U9JPDWVw5AlUQ==

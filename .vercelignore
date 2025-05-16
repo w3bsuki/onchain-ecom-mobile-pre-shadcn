@@ -1,0 +1,8 @@
+# Ignore Medusa backend files during Vercel build
+/my-medusa-store/node_modules
+/my-medusa-store/.cache
+/my-medusa-store/dist
+/my-medusa-store/build
+
+# Keep necessary files
+!/my-medusa-store/medusa-config.build.ts 

@@ -6,5 +6,6 @@
   "devCommand": "next dev",
   "env": {
     "NEXT_PUBLIC_MEDUSA_BACKEND_URL": "https://your-deployed-medusa-backend.com"
-  }
+  },
+  "ignoreCommand": "echo 'Skipping checks for Medusa files'"
 } 

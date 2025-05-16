@@ -41,7 +41,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex items-center justify-center">
+      <body>
         <OnchainProviders>
           <MedusaProviderWrapper>
             {children}
