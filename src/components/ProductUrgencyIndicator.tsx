@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { cn } from '@coinbase/onchainkit/theme';
-import { AlertCircle, Clock, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { AlertCircle, Clock } from 'lucide-react';
 
 interface ProductUrgencyIndicatorProps {
   type: 'limited-stock' | 'limited-time' | 'trending' | 'popular';

@@ -1,6 +1,7 @@
 'use client';
 
-import { cn } from '@coinbase/onchainkit/theme';
+import { Tabs, TabsList, TabsTrigger } from "./tabs";
+import { cn } from "@/lib/utils";
 import { useRef, useEffect } from 'react';
 import { ScrollArea, ScrollBar } from './scroll-area';
 

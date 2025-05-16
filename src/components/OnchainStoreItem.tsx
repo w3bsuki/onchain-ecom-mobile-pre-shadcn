@@ -6,6 +6,11 @@ import ProductImage from './ProductImage';
 import ProductModal from './ProductModal';
 import { Eye, ShoppingCart, Heart } from 'lucide-react';
 import { cn } from '@coinbase/onchainkit/theme';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import ProductUrgencyIndicator from './ProductUrgencyIndicator';
+import WishlistButton from './ui/wishlist-button';
 
 export default function OnchainStoreItem({ id, name, price, image }: Product) {
   const [hovered, setHovered] = useState(false);

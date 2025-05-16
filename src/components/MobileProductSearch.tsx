@@ -5,7 +5,10 @@ import { Search, X } from 'lucide-react';
 import { useOnchainStoreContext } from './OnchainStoreProvider';
 import Link from 'next/link';
 import ProductImage from './ProductImage';
-import { cn } from '@coinbase/onchainkit/theme';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function MobileProductSearch() {
   const [isOpen, setIsOpen] = useState(false);

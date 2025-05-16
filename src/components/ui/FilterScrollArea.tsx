@@ -1,7 +1,8 @@
 'use client';
 
-import { cn } from '@coinbase/onchainkit/theme';
-import { ScrollArea, ScrollBar } from './scroll-area';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { ScrollBar } from './scroll-area';
 
 interface FilterOption {
   id: string;

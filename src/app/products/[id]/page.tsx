@@ -9,8 +9,10 @@ import { Banner } from 'src/components/Banner';
 import { Star, ChevronDown, ChevronUp, Share2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import MobileBottomNav from 'src/components/MobileBottomNav';
-import { cn } from '@coinbase/onchainkit/theme';
+import { cn } from '@/lib/utils';
 import ProductImageGallery from 'src/components/ProductImageGallery';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 export default function ProductPage() {
   const params = useParams();

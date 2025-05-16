@@ -1,16 +1,7 @@
 import type { Metadata } from 'next';
 import { NEXT_PUBLIC_URL } from '../config';
-
 import './global.css';
-import '@coinbase/onchainkit/styles.css';
 import dynamic from 'next/dynamic';
-
-const OnchainProviders = dynamic(
-  () => import('src/components/OnchainProviders'),
-  {
-    ssr: false,
-  },
-);
 
 const MedusaProviderWrapper = dynamic(
   () => import('src/components/MedusaProviderWrapper'),
@@ -25,11 +16,11 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Onchain Commerce Template',
-  description: 'Built with OnchainKit',
+  title: 'Medusa E-commerce',
+  description: 'Modern E-commerce Template',
   openGraph: {
-    title: 'Onchain Commerce Template',
-    description: 'Built with OnchainKit',
+    title: 'Medusa E-commerce',
+    description: 'Modern E-commerce Template',
     images: [`${NEXT_PUBLIC_URL}/vibes/vibes-19.png`],
   },
 };
@@ -42,11 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <OnchainProviders>
-          <MedusaProviderWrapper>
-            {children}
-          </MedusaProviderWrapper>
-        </OnchainProviders>
+        <MedusaProviderWrapper>
+          {children}
+        </MedusaProviderWrapper>
       </body>
     </html>
   );

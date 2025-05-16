@@ -1,7 +1,7 @@
 'use client';
 
-import { cn } from '@coinbase/onchainkit/theme';
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { cn } from "@/lib/utils";
 import {
   INSTAGRAM_LINK,
   TIKTOK_LINK,
@@ -14,6 +14,7 @@ import { ShoppingCart, User } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { BANNER_EVENTS } from './Banner';
 import { ExternalLinkSvg } from 'src/svg/ExternalLinkSvg';
+import MobileProductSearch from './MobileProductSearch';
 
 export default function Navbar() {
   const { quantities, setShowModal } = useOnchainStoreContext();
@@ -68,9 +69,9 @@ export default function Navbar() {
     };
   }, [isUserMenuOpen]);
 
-  const toggleMenu = useCallback(() => {
+  const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
-  }, []);
+  };
 
   return (
     <>

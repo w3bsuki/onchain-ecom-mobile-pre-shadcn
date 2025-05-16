@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { cn } from '@coinbase/onchainkit/theme';
+import { cn } from "@/lib/utils";
 
 interface ProductImageProps {
   src: string | null;

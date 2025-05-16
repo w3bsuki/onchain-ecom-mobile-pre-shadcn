@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import ProductImage from './ProductImage';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@coinbase/onchainkit/theme';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils";
+import ProductImage from './ProductImage';
 
 interface ProductImageGalleryProps {
   mainImage: string | null;

@@ -1,5 +1,5 @@
 {
-  "name": "onchain-commerce-template",
+  "name": "medusa-ecommerce-template",
   "private": true,
   "version": "0.0.0",
   "scripts": {
@@ -17,7 +17,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "^0.35.0",
     "@medusajs/medusa-js": "^6.1.10",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-scroll-area": "^1.2.8",

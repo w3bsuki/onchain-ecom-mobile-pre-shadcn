@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@coinbase/onchainkit/theme';
+import { cn } from "@/lib/utils";
 import { useOnchainStoreContext } from './OnchainStoreProvider';
 import { ShoppingCart, User, Home, Menu, X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
