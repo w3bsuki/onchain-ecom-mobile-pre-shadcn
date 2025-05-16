@@ -1,8 +1,7 @@
 'use client';
 
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "./scroll-area";
 import { cn } from "@/lib/utils";
-import { ScrollBar } from './scroll-area';
 
 interface FilterOption {
   id: string;
@@ -23,10 +22,10 @@ export default function FilterScrollArea({
   label
 }: FilterScrollAreaProps) {
   return (
-    <div className="w-full mb-5">
+    <div className="mb-5 w-full">
       {label && (
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-700">{label}</h3>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-medium text-gray-700 text-sm">{label}</h3>
         </div>
       )}
       
@@ -38,11 +37,11 @@ export default function FilterScrollArea({
               type="button"
               onClick={() => onOptionChange(option.id)}
               className={cn(
-                "rounded-full border px-4 py-1.5 text-sm mx-1 transition-colors",
+                "border mx-1 px-4 py-1.5 rounded-full text-sm transition-colors",
                 "first:ml-2 last:mr-2",
                 activeOption === option.id
                   ? "bg-black border-black text-white"
-                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                  : "bg-white border-gray-200 hover:border-gray-300 text-gray-700"
               )}
             >
               {option.name}
