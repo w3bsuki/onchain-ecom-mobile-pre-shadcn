@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface IconProps {
   className?: string;
 }
@@ -11,7 +9,7 @@ export function ShoesIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}
@@ -32,7 +30,7 @@ export function ShirtIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}
@@ -40,6 +38,59 @@ export function ShirtIcon({ className }: IconProps) {
     >
       <title>Shirt</title>
       <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
+      <path d="M8 10v5" />
+      <path d="M16 10v5" />
+    </svg>
+  );
+}
+
+export function HoodieIcon({ className }: IconProps) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="1.75" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+      aria-hidden="true"
+    >
+      <title>Hoodie</title>
+      <path d="M21 6l-5 4" />
+      <path d="M3 6l5 4" />
+      <path d="M12 2a4 4 0 0 0-4 4v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a4 4 0 0 0-4-4z" />
+      <path d="M10 10v8c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-8" />
+      <path d="M7.2 6h-.1a2 2 0 0 0-2 2.1l.5 8a2 2 0 0 0 2 1.9h.1" />
+      <path d="M16.8 6h.1a2 2 0 0 1 2.1 2.1l-.6 8A2 2 0 0 1 16.4 18h-.1" />
+      <path d="M12 3v9" />
+    </svg>
+  );
+}
+
+export function JacketIcon({ className }: IconProps) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="1.75" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+      aria-hidden="true"
+    >
+      <title>Jacket</title>
+      <path d="M16 2H8a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3Z" />
+      <path d="M5 10V5" />
+      <path d="M19 10V5" />
+      <path d="M5 17S7 17 12 17s7 0 7 0" />
+      <path d="M12 4s-5 0-5 6v3" />
+      <path d="M12 4s5 0 5 6v3" />
+      <path d="M10 10v1" />
+      <path d="M14 10v1" />
     </svg>
   );
 }
@@ -51,7 +102,7 @@ export function HatIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}
@@ -71,7 +122,7 @@ export function WatchIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}
@@ -92,7 +143,7 @@ export function GlassesIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}
@@ -115,7 +166,7 @@ export function AllIcon({ className }: IconProps) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.75" 
       strokeLinecap="round" 
       strokeLinejoin="round" 
       className={className}

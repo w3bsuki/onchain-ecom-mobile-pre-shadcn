@@ -33,8 +33,7 @@ export default function SkeletonProductCard({ className }: SkeletonProductCardPr
   return (
     <div 
       className={cn(
-        "animate-pulse border border-blue-300 rounded-xl overflow-hidden h-full",
-        "relative bg-blue-50",
+        "animate-pulse bg-zinc-50 border border-zinc-200 h-full overflow-hidden relative rounded-xl",
         className
       )}
       aria-hidden="true"
@@ -45,40 +44,40 @@ export default function SkeletonProductCard({ className }: SkeletonProductCardPr
       </div>
     
       {/* Skeleton for product image */}
-      <div className="w-full pt-[100%] relative bg-blue-100 mt-6">
+      <div className="bg-zinc-100 relative pt-[100%] w-full">
         {/* Random badge placeholders */}
         {Math.random() > 0.7 && (
-          <div className="absolute left-3 top-3 w-16 h-6 bg-blue-200 rounded" />
+          <div className="absolute bg-zinc-200 h-6 left-3 rounded top-3 w-16" />
         )}
         
         {/* Wishlist button placeholder */}
-        <div className="absolute right-3 top-3 w-8 h-8 rounded-full bg-blue-200" />
+        <div className="absolute bg-zinc-200 h-8 right-3 rounded-full top-3 w-8" />
       </div>
       
       {/* Skeleton for product details */}
-      <div className={cn("p-4 space-y-3 md:p-6 md:space-y-4")}>
+      <div className="p-4 space-y-3">
         {/* Title placeholder */}
-        <div className="h-5 bg-blue-200 rounded w-3/4" />
+        <div className="bg-zinc-200 h-5 rounded w-3/4" />
         
         {/* Rating placeholder */}
-        <div className="flex space-x-1 items-center">
-          <div className="h-3 bg-blue-200 rounded w-20" />
-          <div className="h-3 bg-blue-200 rounded-full w-8 ml-2" />
+        <div className="flex items-center space-x-1">
+          <div className="bg-zinc-200 h-3 rounded w-20" />
+          <div className="bg-zinc-200 h-3 ml-2 rounded-full w-8" />
         </div>
         
         {/* Price placeholder */}
-        <div className="h-5 bg-blue-200 rounded w-16" />
+        <div className="bg-zinc-200 h-5 rounded w-16" />
         
         {/* Color options placeholder */}
-        <div className="flex space-x-2 pt-1">
+        <div className="flex space-x-2">
           {[1, 2, 3].map((_, index) => (
-            <div key={index} className="w-6 h-6 rounded-full bg-blue-200" />
+            <div key={index} className="bg-zinc-200 h-6 rounded-full w-6" />
           ))}
         </div>
         
         {/* Button placeholder */}
         <div className={cn(
-          "w-full rounded-lg bg-blue-300",
+          "bg-teal-100 rounded-lg w-full",
           isMobile ? "h-12 mt-3" : "h-10 mt-2"
         )} />
       </div>

@@ -2,31 +2,40 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost', '127.0.0.1'], // Allow images from Medusa backend
-    dangerouslyAllowSVG: true, // Allow SVG images from external sources
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Add script and content security policy configuration for Spline
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; style-src-elem 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self' https://prod.spline.design http://localhost:9000 https://localhost:9000; frame-src 'self' https://my.spline.design https://prod.spline.design; img-src 'self' data: https://localhost:* http://localhost:* https://prod.spline.design http://127.0.0.1:* https:// http://"
-          },
-        ],
-      },
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-eval' 'unsafe-inline';
+              style-src 'self' 'unsafe-inline';
+              img-src 'self' data: blob: https://* http://*;
+              font-src 'self';
+              object-src 'none';
+              base-uri 'self';
+              form-action 'self';
+              frame-ancestors 'none';
+              connect-src 'self' https://*.supabase.co https://*.supabase.net http://localhost:* https://localhost:*;
+              block-all-mixed-content;
+              upgrade-insecure-requests;
+            `.replace(/\s{2,}/g, ' ').trim()
+          }
+        ]
+      }
     ];
   },
   // Exclude specific Medusa backend files from TypeScript checking

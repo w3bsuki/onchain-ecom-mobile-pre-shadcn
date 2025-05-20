@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useOnchainStoreContext } from './OnchainStoreProvider';
-import { ShoppingCart, User, Home, Menu, X, ArrowRight } from 'lucide-react';
+import { ShoppingCart, User, Home, Menu, X, ArrowRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import MobileProductSearch from './MobileProductSearch';
@@ -89,12 +89,12 @@ export default function MobileBottomNav() {
     <>
       {/* User menu dropdown */}
       {showUserMenu && (
-        <div className="fixed bottom-16 right-4 z-50 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
-          <Link href="/account/login" className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
-          <Link href="/account/register" className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50">Register</Link>
-          <div className="my-1 border-t border-gray-100" />
-          <Link href="/account" className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50">My Account</Link>
-          <Link href="/account/orders" className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50">My Orders</Link>
+        <div className="fixed bottom-16 right-4 z-50 w-48 rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/5">
+          <Link href="/account/login" className="block px-4 py-3 text-sm text-gray-900 transition-colors hover:bg-gray-50 active:bg-gray-100">Log In</Link>
+          <Link href="/account/register" className="block px-4 py-3 text-sm text-gray-900 transition-colors hover:bg-gray-50 active:bg-gray-100">Register</Link>
+          <div className="my-1 border-t border-gray-200" />
+          <Link href="/account" className="block px-4 py-3 text-sm text-gray-900 transition-colors hover:bg-gray-50 active:bg-gray-100">My Account</Link>
+          <Link href="/account/orders" className="block px-4 py-3 text-sm text-gray-900 transition-colors hover:bg-gray-50 active:bg-gray-100">My Orders</Link>
         </div>
       )}
       
@@ -102,12 +102,12 @@ export default function MobileBottomNav() {
       {showMainMenu && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white">
           {/* Header with close button */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <h2 className="font-bold text-xl">Menu</h2>
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-4">
+            <h2 className="font-semibold text-xl text-gray-900">Menu</h2>
             <button
               type="button"
               onClick={handleMainMenuToggle}
-              className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+              className="rounded-full p-3 text-gray-500 hover:bg-gray-100 active:bg-gray-200"
               aria-label="Close menu"
             >
               <X size={24} />
@@ -115,22 +115,22 @@ export default function MobileBottomNav() {
           </div>
           
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto py-4">
+          <div className="flex-1 overflow-y-auto py-6">
             {menuCategories.map((category) => (
-              <div key={category.title} className="mb-6 px-4">
-                <h3 className="font-semibold mb-3 text-lg">{category.title}</h3>
-                <ul className="space-y-2">
+              <div key={category.title} className="mb-8 px-4">
+                <h3 className="font-semibold mb-4 text-lg text-gray-900">{category.title}</h3>
+                <ul className="space-y-1">
                   {category.links.map((link) => (
                     <li key={link.name}>
                       <Link 
                         href={link.href}
-                        className="group flex items-center justify-between py-2 text-gray-600"
+                        className="group flex items-center justify-between py-3 text-gray-600 hover:text-gray-900 active:bg-gray-50"
                         onClick={handleMainMenuToggle} // Close menu when link is clicked
                       >
-                        <span>{link.name}</span>
+                        <span className="text-base">{link.name}</span>
                         <ArrowRight 
-                          size={16} 
-                          className="opacity-0 transform transition-all group-hover:opacity-100 group-hover:translate-x-1 text-gray-400" 
+                          size={18} 
+                          className="opacity-0 transform transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-1 text-gray-400" 
                         />
                       </Link>
                     </li>
@@ -144,34 +144,46 @@ export default function MobileBottomNav() {
       
       {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white shadow-lg md:hidden">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid h-16 grid-cols-5">
           {/* Home */}
           <Link 
             href="/" 
             className={cn(
               "flex flex-col items-center justify-center text-gray-600",
-              "hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
+              "hover:text-teal-700 active:text-teal-600 transition-colors",
+              "h-full min-w-[3rem] px-1"
             )}
           >
             <Home size={22} strokeWidth={1.5} />
             <span className="mt-1 text-xs font-medium">Home</span>
           </Link>
           
-          {/* Search - using the MobileProductSearch component */}
-          <MobileProductSearch />
+          {/* Search */}
+          <Link
+            href="/search"
+            className={cn(
+              "flex flex-col items-center justify-center text-gray-600",
+              "hover:text-teal-700 active:text-teal-600 transition-colors",
+              "h-full min-w-[3rem] px-1"
+            )}
+          >
+            <Search size={22} strokeWidth={1.5} />
+            <span className="mt-1 text-xs font-medium">Search</span>
+          </Link>
           
           {/* Cart */}
           <button
             type="button"
             className={cn(
               "flex flex-col items-center justify-center relative text-gray-600",
-              "hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
+              "hover:text-teal-700 active:text-teal-600 transition-colors",
+              "h-full min-w-[3rem] px-1"
             )}
             onClick={() => setShowModal?.(true)}
           >
             <ShoppingCart size={22} strokeWidth={1.5} />
             {quantities.cartItemCount > 0 && (
-              <span className="absolute right-4 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white">
+              <span className="absolute right-3 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-medium text-white">
                 {quantities.cartItemCount}
               </span>
             )}
@@ -183,8 +195,9 @@ export default function MobileBottomNav() {
             type="button"
             className={cn(
               "flex flex-col items-center justify-center text-gray-600",
-              "hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100",
-              showUserMenu && "bg-gray-100 text-blue-600"
+              "hover:text-teal-700 active:text-teal-600 transition-colors",
+              "h-full min-w-[3rem] px-1",
+              showUserMenu && "text-teal-700"
             )}
             onClick={handleUserMenuToggle}
           >
@@ -197,7 +210,8 @@ export default function MobileBottomNav() {
             type="button"
             className={cn(
               "flex flex-col items-center justify-center text-gray-600",
-              "hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
+              "hover:text-teal-700 active:text-teal-600 transition-colors",
+              "h-full min-w-[3rem] px-1"
             )}
             onClick={handleMainMenuToggle}
           >

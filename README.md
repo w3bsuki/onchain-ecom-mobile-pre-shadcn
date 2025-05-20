@@ -1,92 +1,147 @@
-# Onchain Commerce Template
+# Mobile-First E-Commerce Platform
 
-<img width="1200" alt="Thumbnail (1)" src="https://github.com/user-attachments/assets/e1f513ea-d1ac-4baf-908e-35b0456d5565">
+A high-performance, conversion-optimized e-commerce platform built with Next.js, Tailwind CSS, and Medusa.js. This project follows mobile-first design principles to create a seamless shopping experience on all devices.
 
-An Onchain Commerce Template built with [OnchainKit](https://onchainkit.xyz), [Stripe](https://stripe.com), and [Medusa](https://medusajs.com), ready to be deployed to Vercel.
+## Key Features
 
-Play with it live on https://onchain-commerce-template.vercel.app/
+- 📱 Mobile-first design with optimized user flows
+- ⚡ High-performance architecture with Next.js App Router
+- 🛍️ Comprehensive e-commerce functionality
+- 🎨 Beautiful design system using Tailwind CSS and shadcn/ui
+- 🔐 Secure authentication and payment processing
+- 📊 Order tracking and management
+- 📦 Medusa.js backend integration
 
-Have fun! ⛵️
+## Technology Stack
 
-<br />
+- **Frontend**: Next.js 14+, React 18+, Tailwind CSS, shadcn/ui
+- **Backend**: Medusa.js, Node.js
+- **Database**: PostgreSQL (via Supabase)
+- **Payment Processing**: Stripe
+- **Deployment**: Vercel
 
-## Setup
+## Project Structure
 
-To ensure all components work seamlessly, set the following environment variables in your `.env` file using `.local.env.example` as a reference.
-
-### Coinbase Commerce Setup
-
-You can find the API key on the [Coinbase Developer Portal's OnchainKit page](https://portal.cdp.coinbase.com/products/onchainkit). If you don't have an account, you will need to create one. 
-
-You can find your Coinbase Commerce API key on [Coinbase Commerce](https://beta.commerce.coinbase.com/). If you don't have an account, you will need to create one. 
-
-```sh
-# See https://portal.cdp.coinbase.com/products/onchainkit
-NEXT_PUBLIC_ONCHAINKIT_API_KEY="GET_FROM_COINBASE_DEVELOPER_PLATFORM"
-
-# See https://beta.commerce.coinbase.com/
-COINBASE_COMMERCE_API_KEY="GET_FROM_COINBASE_COMMERCE"
+```
+├── components/           # Reusable UI components
+│   ├── ui/               # Base UI components (shadcn/ui)
+│   └── ...               # Feature components
+├── docs/                 # Project documentation
+│   ├── MASTER_PLAN.md    # Overall project vision and roadmap
+│   ├── Phase1.md         # Phase 1 detailed plan
+│   └── ...               # Additional documentation
+├── lib/                  # Shared utilities and helpers
+├── public/               # Static assets
+├── src/                  # Application source code
+│   ├── app/              # Next.js app router pages
+│   ├── components/       # React components
+│   ├── context/          # React context providers
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions
+│   └── utils/            # Helper utilities
+├── my-medusa-store/      # Medusa.js backend
+├── .env.local            # Environment variables (create from .env.example)
+└── ...                   # Configuration files
 ```
 
-### Stripe Setup
+## Getting Started
 
-You will need to create a Stripe account and get API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
+### Prerequisites
 
-```sh
-# See https://dashboard.stripe.com/apikeys
-STRIPE_SECRET_KEY=sk_test_REPLACE_WITH_YOUR_SECRET_KEY
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_REPLACE_WITH_YOUR_PUBLISHABLE_KEY
-```
+- Node.js 18+ and npm
+- PostgreSQL database
+- Stripe account for payment processing
 
-<br />
+### Installation
 
-## Payment Methods
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/onchain-commerce-template.git
+   cd onchain-commerce-template
+   ```
 
-This template supports two payment options:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-1. **Cryptocurrency** - Using Coinbase Commerce integration via OnchainKit
-2. **Credit/Debit Cards** - Using Stripe payment integration
+3. Copy the example env file and configure your environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-Both payment options are configured in the cart component, and you can customize or remove either option as needed.
+4. Set up the Medusa backend:
+   ```bash
+   cd my-medusa-store
+   npm install
+   npm run seed
+   npm run dev
+   ```
 
-<br />
+5. In a new terminal, start the Next.js development server:
+   ```bash
+   cd ..
+   npm run dev
+   ```
 
-## Enabling checkout
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-By default, the checkout functionality is disabled to prevent transactions in non-production environments. To enable the checkout flow for local development, you need to uncomment the code found in the `OnchainStoreCart.tsx` component, along with the imports at the top of the file.
+## Development
 
-You can also remove the `OnchainStoreModal` component and logic as well as the `MockCheckoutButton` as these were created for demo purposes only. 
+### Project Phases
 
-Next, you'll want to replace `products` in the `OnchainStoreProvider` with your own product items. 
+This project follows a phased approach to development:
 
+1. **Phase 1**: Foundation & Core Experience
+   - Mobile navigation optimization
+   - Product browsing experience
+   - Cart and checkout flow
+   - User authentication
 
->This template showcases a multi-product checkout implementation of our `Checkout` component using the `chargeHandler` approach. You can read more about this implementation in the Advanced Usage section of our `Checkout` component docs here: https://onchainkit.xyz/checkout/checkout
+2. **Phase 2**: Enhanced Features & Optimizations
+   - Order tracking
+   - Personalization features
+   - Performance optimizations
+   - A/B testing framework
 
+3. **Phase 3**: Advanced Features & Scaling
+   - Advanced search capabilities
+   - Customer retention features
+   - International expansion readiness
+   - Advanced analytics
 
-<br />
+For more details, see the [Project Documentation](./docs/README.md).
 
-## Running locally
+### Design System
 
-```sh
-# Install bun in case you don't have it
-bun curl -fsSL <https://bun.sh/install> | bash
+This project follows a comprehensive design system documented in [Design System](./docs/DesignSystem.md).
 
-# Install packages
-bun i
+### Mobile-First Development
 
-# Run Next app
-bun run dev
-```
-<br />
+All components and pages are developed with a mobile-first approach:
 
-## Resources
+1. Design for mobile devices first
+2. Add responsive breakpoints for larger devices
+3. Ensure all interactive elements are touch-friendly
+4. Optimize for performance on mobile networks
 
-- [OnchainKit documentation](https://onchainkit.xyz)
-- [Stripe documentation](https://stripe.com/docs)
-- [Medusa documentation](https://docs.medusajs.com)
+## Documentation
 
-<br />
+For detailed documentation, see the [docs](./docs) directory:
+
+- [Master Plan](./docs/MASTER_PLAN.md) - Overall vision and roadmap
+- [Phase Plans](./docs/Phase1.md) - Detailed phase implementation plans
+- [Progress Tracking](./docs/Progress-Phase1.md) - Current development status
+- [Design System](./docs/DesignSystem.md) - UI/UX guidelines
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

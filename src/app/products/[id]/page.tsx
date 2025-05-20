@@ -6,12 +6,12 @@ import { useOnchainStoreContext } from 'src/components/OnchainStoreProvider';
 import ProductImage from 'src/components/ProductImage';
 import Navbar from 'src/components/Navbar';
 import { Banner } from 'src/components/Banner';
-import { Star, ChevronDown, ChevronUp, Share2, ArrowLeft } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp, Share2, ArrowLeft, Heart } from 'lucide-react';
 import Link from 'next/link';
 import MobileBottomNav from 'src/components/MobileBottomNav';
 import { cn } from '@/lib/utils';
 import ProductImageGallery from 'src/components/ProductImageGallery';
-import { Metadata } from 'next';
+import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
 
 export default function ProductPage() {
@@ -19,31 +19,18 @@ export default function ProductPage() {
   const productId = params.id as string;
   const { products, addToCart } = useOnchainStoreContext();
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>('description');
-  const [isMobile, setIsMobile] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isWishlist, setIsWishlist] = useState(false);
 
-  // Check if on mobile
+  // Scroll detection for sticky header
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    // Scroll detection for sticky header
     const handleScroll = () => {
       setScrolled(window.scrollY > 120);
     };
     
     window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Find the product with matching ID
@@ -87,11 +74,11 @@ export default function ProductPage() {
         <Navbar />
         <main className="container mx-auto flex flex-grow items-center justify-center px-4 pt-20">
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold">Product Not Found</h1>
-            <p className="mb-8">The product you're looking for doesn't exist or has been removed.</p>
-            <Link href="/" className="inline-block rounded bg-black px-6 py-2 text-white hover:bg-gray-800">
-              Back to Home
-            </Link>
+            <h1 className="mb-4 text-2xl font-bold text-gray-900">Product Not Found</h1>
+            <p className="mb-8 text-gray-600">The product you're looking for doesn't exist or has been removed.</p>
+            <Button asChild>
+              <Link href="/">Back to Home</Link>
+            </Button>
           </div>
         </main>
         <MobileBottomNav />
@@ -100,30 +87,41 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col font-sansMono">
+    <div className="flex min-h-screen flex-col bg-white">
       <Banner />
       <Navbar />
       
-      <main className="container mx-auto flex-grow px-4 pt-16 md:pt-24">
-        {/* Mobile Back Button - only visible on mobile */}
-        <div className="flex items-center mb-4 md:hidden">
-          <Link href="/" className="flex items-center text-gray-600">
-            <ArrowLeft size={18} className="mr-1" />
+      <main className="container mx-auto flex-grow px-4 pt-4 pb-24 md:px-6 md:pt-8 md:pb-16">
+        {/* Mobile Back Button */}
+        <div className="flex items-center justify-between mb-4 md:hidden">
+          <Link href="/" className="flex items-center text-gray-600 py-2">
+            <ArrowLeft size={20} className="mr-1" />
             <span>Back</span>
           </Link>
+          
+          <button
+            type="button"
+            onClick={() => setIsWishlist(!isWishlist)}
+            className="p-2 text-gray-600"
+            aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart className={cn("h-6 w-6", isWishlist ? "fill-red-500 text-red-500" : "")} />
+          </button>
         </div>
         
         {/* Breadcrumb - hidden on mobile */}
         <div className="mb-6 text-sm hidden md:block">
-          <Link href="/" className="hover:underline">Home</Link> / 
-          <Link href="/" className="mx-2 hover:underline">Products</Link> / 
-          <span className="font-medium">{product.name}</span>
+          <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
+          <span className="mx-2 text-gray-400">/</span>
+          <Link href="/" className="text-gray-600 hover:text-gray-900">Products</Link>
+          <span className="mx-2 text-gray-400">/</span>
+          <span className="text-gray-900">{product.name}</span>
         </div>
         
         {/* Product Details */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Product Image with gallery component */}
-          <div className="mb-4 md:mb-0 md:sticky md:top-24">
+          <div className="mb-6 md:mb-0 md:sticky md:top-24">
             <ProductImageGallery 
               mainImage={typeof product.image === 'string' ? product.image : null}
               altImages={[]} // In a real app, you would pass alternative product images here
@@ -134,14 +132,23 @@ export default function ProductPage() {
           {/* Product Info */}
           <div className="relative">
             {/* Share button - desktop only */}
-            <button 
-              className="absolute right-0 top-0 rounded-full bg-gray-100 hidden md:flex items-center justify-center p-2"
-              aria-label="Share product"
-            >
-              <Share2 size={16} />
-            </button>
+            <div className="absolute right-0 top-0 hidden md:flex space-x-2">
+              <button 
+                className="rounded-full bg-gray-100 flex items-center justify-center p-2 hover:bg-gray-200"
+                aria-label="Share product"
+              >
+                <Share2 size={18} />
+              </button>
+              <button
+                className="rounded-full bg-gray-100 flex items-center justify-center p-2 hover:bg-gray-200"
+                onClick={() => setIsWishlist(!isWishlist)}
+                aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                <Heart className={cn("h-5 w-5", isWishlist ? "fill-red-500 text-red-500" : "")} />
+              </button>
+            </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
+            <h1 className="text-xl md:text-2xl font-semibold mb-2 text-gray-900 pr-16 md:pr-0">{product.name}</h1>
             
             {/* Rating */}
             <div className="flex items-center mb-4">
@@ -161,19 +168,27 @@ export default function ProductPage() {
               </span>
             </div>
             
-            <p className="text-xl md:text-2xl font-bold mb-4 md:mb-6">{product.price.toFixed(2)} USDC</p>
+            <p className="text-xl font-semibold mb-4 text-gray-900">${product.price.toFixed(2)}</p>
             
-            <p className="mb-6 text-gray-700 text-sm md:text-base">
+            <p className="mb-6 text-gray-600 text-sm">
               This premium product offers exceptional quality and value. Perfect for everyday use or special occasions.
             </p>
             
+            {/* Stock Status */}
+            <div className="mb-6">
+              <p className="flex items-center text-green-600 text-sm">
+                <span className="bg-green-600 h-2 mr-2 rounded-full w-2" />
+                In stock and ready to ship
+              </p>
+            </div>
+            
             {/* Quantity Selector */}
             <div className="mb-6">
-              <label htmlFor="quantity" className="mb-2 block font-medium">Quantity</label>
+              <label htmlFor="quantity" className="mb-2 block font-medium text-sm text-gray-900">Quantity</label>
               <div className="flex items-center">
                 <button
                   type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-l border border-gray-300 bg-gray-100 hover:bg-gray-200"
+                  className="flex h-11 w-11 md:h-10 md:w-10 items-center justify-center rounded-l-lg border border-gray-300 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-900"
                   onClick={() => handleQuantityChange(quantity - 1)}
                   disabled={quantity <= 1}
                 >
@@ -184,28 +199,27 @@ export default function ProductPage() {
                   id="quantity"
                   value={quantity}
                   onChange={(e) => handleQuantityChange(parseInt(e.target.value, 10))}
-                  className="h-10 w-16 border-y border-gray-300 px-2 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="h-11 md:h-10 w-16 border-y border-gray-300 px-2 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   min="1"
                 />
                 <button
                   type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-r border border-gray-300 bg-gray-100 hover:bg-gray-200"
+                  className="flex h-11 w-11 md:h-10 md:w-10 items-center justify-center rounded-r-lg border border-gray-300 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-900"
                   onClick={() => handleQuantityChange(quantity + 1)}
                 >
                   +
                 </button>
               </div>
-
             </div>
             
             {/* Add to Cart Button - Regular position for desktop */}
-            <button
-              type="button"
-              className="hidden md:block w-full rounded bg-black px-6 py-3 text-white hover:bg-gray-800"
+            <Button
+              className="hidden md:block w-full"
               onClick={handleAddToCart}
+              size="lg"
             >
               Add to Cart
-            </button>
+            </Button>
             
             {/* Product Information Accordion */}
             <div className="border-t border-gray-200 mt-6">
@@ -213,7 +227,7 @@ export default function ProductPage() {
               <div className="border-b border-gray-200 py-4">
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between text-left font-medium"
+                  className="flex w-full items-center justify-between text-left font-medium text-gray-900 py-2"
                   onClick={() => toggleAccordion('description')}
                 >
                   <span>Description</span>
@@ -224,7 +238,7 @@ export default function ProductPage() {
                   )}
                 </button>
                 {expandedAccordion === 'description' && (
-                  <div className="mt-4 text-gray-600">
+                  <div className="mt-3 text-gray-600 text-sm">
                     <p>
                       Our premium product is crafted with attention to detail and the highest quality materials.
                       Designed to provide long-lasting performance and satisfaction.
@@ -237,7 +251,7 @@ export default function ProductPage() {
               <div className="border-b border-gray-200 py-4">
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between text-left font-medium"
+                  className="flex w-full items-center justify-between text-left font-medium text-gray-900 py-2"
                   onClick={() => toggleAccordion('shipping')}
                 >
                   <span>Shipping & Returns</span>
@@ -248,7 +262,7 @@ export default function ProductPage() {
                   )}
                 </button>
                 {expandedAccordion === 'shipping' && (
-                  <div className="mt-4 text-gray-600">
+                  <div className="mt-3 text-gray-600 text-sm">
                     <p>
                       Free shipping on all orders over $50. Delivery typically takes 3-5 business days.
                       Items can be returned within 30 days of receipt for a full refund.
@@ -261,14 +275,14 @@ export default function ProductPage() {
         </div>
         
         {/* Reviews Section */}
-        <div className="mt-12 md:mt-16">
-          <h2 className="mb-6 text-xl md:text-2xl font-bold">Customer Reviews</h2>
+        <div className="mt-12">
+          <h2 className="mb-6 text-lg md:text-xl font-semibold text-gray-900">Customer Reviews</h2>
           
           {reviews.map((review) => (
             <div key={review.id} className="mb-6 border-b border-gray-200 pb-6">
               <div className="mb-2 flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{review.author}</p>
+                  <p className="font-medium text-gray-900">{review.author}</p>
                   <div className="flex mt-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
@@ -283,45 +297,42 @@ export default function ProductPage() {
                 </div>
                 <p className="text-sm text-gray-500">{review.date}</p>
               </div>
-              <p className="text-gray-700">{review.content}</p>
+              <p className="text-gray-600 text-sm">{review.content}</p>
             </div>
           ))}
           
           {/* Review Form Placeholder */}
-          <div className="mb-16 rounded-lg border border-gray-200 p-6">
-            <h3 className="mb-4 text-lg md:text-xl font-bold">Write a Review</h3>
-            <p className="mb-4 text-sm md:text-base text-gray-600">Share your thoughts about this product with other customers.</p>
-            <button
-              type="button"
-              className="rounded bg-black px-6 py-2 text-white hover:bg-gray-800"
-            >
+          <div className="mb-12 rounded-lg border border-gray-200 p-6">
+            <h3 className="mb-3 text-base md:text-lg font-semibold text-gray-900">Write a Review</h3>
+            <p className="mb-4 text-sm text-gray-600">Share your thoughts about this product with other customers.</p>
+            <Button variant="secondary" size="sm">
               Write a Review
-            </button>
+            </Button>
           </div>
         </div>
         
         {/* Related Products */}
-        <div className="mb-16">
-          <h2 className="mb-6 text-xl md:text-2xl font-bold">You May Also Like</h2>
+        <div className="mb-10">
+          <h2 className="mb-4 text-lg md:text-xl font-semibold text-gray-900">You May Also Like</h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
             {relatedProducts.map((relatedProduct) => (
               <Link
                 href={`/products/${relatedProduct.id}`}
                 key={relatedProduct.id}
-                className="group rounded-lg border border-gray-200 p-3 md:p-4 transition hover:shadow-md"
+                className="group rounded-lg border border-gray-200 p-3 transition hover:shadow-sm"
               >
-                <div className="mb-3 aspect-square overflow-hidden">
+                <div className="mb-2 aspect-square overflow-hidden">
                   <ProductImage
                     src={typeof relatedProduct.image === 'string' ? relatedProduct.image : null}
                     alt={relatedProduct.name}
-                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                    className="h-full w-full object-cover"
                     width={200}
                     height={200}
                   />
                 </div>
-                <h3 className="mb-1 text-sm md:text-base font-medium truncate">{relatedProduct.name}</h3>
-                <p className="text-sm md:text-base font-bold">{relatedProduct.price.toFixed(2)} USDC</p>
+                <h3 className="mb-1 text-sm font-medium truncate text-gray-900">{relatedProduct.name}</h3>
+                <p className="text-sm font-semibold text-gray-900">${relatedProduct.price.toFixed(2)}</p>
               </Link>
             ))}
           </div>
@@ -331,17 +342,17 @@ export default function ProductPage() {
       {/* Sticky Add to Cart bar for mobile */}
       <div 
         className={cn(
-          "fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-3 md:hidden z-30 transition-transform duration-200",
-          !scrolled ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
+          "fixed bottom-16 inset-x-0 bg-white border-t border-gray-200 p-3 md:hidden z-30 transition-all duration-200",
+          !scrolled && "translate-y-full opacity-0"
         )}
       >
-        <button
-          type="button"
-          className="w-full rounded bg-black px-6 py-3 text-white font-medium"
+        <Button 
+          className="w-full"
           onClick={handleAddToCart}
+          size="lg"
         >
-          Add to Cart - {product.price.toFixed(2)} USDC
-        </button>
+          Add to Cart - ${product.price.toFixed(2)}
+        </Button>
       </div>
       
       <MobileBottomNav />

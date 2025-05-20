@@ -1,59 +1,20 @@
 import { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { OnchainStoreContextType } from '../types';
-import jacketImage from '../images/jacket.png';
-import airpodsImage from '../images/airpods.png';
-import mugImage from '../images/mug.png';
-import bottleImage from '../images/bottle.png';
-import type { Product } from 'src/types';
-import { useProducts } from '../hooks/useProducts';
-import { USE_FALLBACK_PRODUCTS } from '../config';
+import type { OnchainStoreContextType, Product } from '@/types';
+import { useProducts } from '@/hooks/useProducts';
+import { demoProducts } from '@/lib/demo-products';
 
-const emptyContext = {} as OnchainStoreContextType;
+const OnchainStoreContext = createContext<OnchainStoreContextType | null>(null);
 
-const OnchainStoreContext =
-  createContext<OnchainStoreContextType>(emptyContext);
-
-type OnchainStoreProviderReact = {
+interface OnchainStoreProviderProps {
   children: ReactNode;
-};
+}
 
-// Fallback products in case the API call fails
-const fallbackProducts: Product[] = [
-  // TEST PRODUCT - Added to verify our changes are working
-  { 
-    id: 'test-product', 
-    name: `⚠️ TEST PRODUCT - MOBILE OPTIMIZED VERSION ⚠️`, 
-    price: 99.99,
-    image: bottleImage 
-  },
-  { id: 'product1', name: `'BUILDER' JACKET`, price: 0.04, image: jacketImage },
-  {
-    id: 'product2',
-    name: `'DND, I'M BUILDING' AIRPODS`,
-    price: 0.01,
-    image: airpodsImage,
-  },
-  {
-    id: 'product3',
-    name: `'CAFFEINATED TO BUILD' MUG`,
-    price: 0.02,
-    image: mugImage,
-  },
-  {
-    id: 'product4',
-    name: `'HYDRATED TO BUILD' BOTTLE`,
-    price: 0.01,
-    image: bottleImage,
-  },
-];
-
-export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
-  const [quantities, setQuantities] = useState({});
-  const { products: medusaProducts, loading, error } = useProducts();
-  
-  // Use the config value instead of hard-coding
-  const useFallback = USE_FALLBACK_PRODUCTS;
+export function OnchainStoreProvider({ children }: OnchainStoreProviderProps) {
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('newest');
+  const { products: fetchedProducts, loading, error } = useProducts();
   
   // Add cart management functions
   const setQuantity = useCallback((productId: string, quantity: number) => {
@@ -78,60 +39,94 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
     });
   }, []);
   
-  // Process Medusa products to ensure images work properly
-  const processedMedusaProducts = useMemo(() => {
-    if (!medusaProducts || medusaProducts.length === 0) {
-      console.log('No Medusa products available');
-      return [];
-    }
-    
-    return medusaProducts.map(product => {
-      // For images, we'll use our ProductImage component which handles various formats
-      // Here we just make sure the image URL is stored properly
-      let processedImage = product.image;
-      
-      // Just store the raw image path/URL - our ProductImage component will handle the rest
-      if (typeof product.image === 'string') {
-        // Store the raw image path - ProductImage component will handle URL construction
-        processedImage = product.image;
-        console.log(`Product ${product.name} will use image: ${processedImage}`);
-      } else {
-        console.log(`Product ${product.name} has non-string image`);
-      }
-      
-      return {
-        ...product,
-        image: processedImage
-      };
-    });
-  }, [medusaProducts]);
-  
-  // Use Medusa products if available, otherwise fallback to hardcoded products
-  const products = useMemo(() => {
-    if (useFallback || error || !processedMedusaProducts || processedMedusaProducts.length === 0) {
-      console.log('Using fallback products');
-      return fallbackProducts;
-    }
-    
-    console.log('Using Medusa products with count:', processedMedusaProducts.length);
-    for (const p of processedMedusaProducts) {
-      console.log(`Product: ${p.name}, Image: ${p.image}`);
-    }
-    
-    return processedMedusaProducts;
-  }, [processedMedusaProducts, error, useFallback]);
+  // Filter products based on active category
+  const filteredProducts = useMemo(() => {
+    const productsToUse = fetchedProducts?.length ? fetchedProducts : demoProducts;
+    return activeCategory === 'all'
+      ? productsToUse
+      : productsToUse.filter(product => product.category === activeCategory);
+  }, [fetchedProducts, activeCategory]);
 
-  const value = useMemo(() => {
-    return {
-      quantities,
-      setQuantities,
-      setQuantity,
-      addToCart,
-      removeFromCart,
-      products,
-      loading: useFallback ? false : loading,
-    };
-  }, [quantities, setQuantities, setQuantity, addToCart, removeFromCart, products, loading, useFallback]);
+  // Sort products based on active filter
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      switch (activeFilter) {
+        case 'price-low': {
+          return a.price - b.price;
+        }
+        case 'price-high': {
+          return b.price - a.price;
+        }
+        case 'newest': {
+          // Sort by createdAt date if available, otherwise use id as a proxy
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          // Assume higher ID = newer (common in sequential IDs)
+          return b.id.localeCompare(a.id);
+        }
+        case 'best-selling': {
+          // If sales data is available, sort by that
+          return (b.salesCount || 0) - (a.salesCount || 0);
+        }
+        case 'rating': {
+          // Sort by rating if available
+          return (b.rating || 0) - (a.rating || 0);
+        }
+        case 'alphabetical': {
+          return a.name.localeCompare(b.name);
+        }
+        case 'alphabetical-reverse': {
+          return b.name.localeCompare(a.name);
+        }
+        default: {
+          // Default to newest
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          return b.id.localeCompare(a.id);
+        }
+      }
+    });
+  }, [filteredProducts, activeFilter]);
+
+  // Handle category change
+  const handleCategoryChange = useCallback((categoryId: string) => {
+    setActiveCategory(categoryId);
+  }, []);
+
+  // Handle filter change
+  const handleFilterChange = useCallback((filterId: string) => {
+    setActiveFilter(filterId);
+  }, []);
+
+  const value = useMemo(() => ({
+    quantities,
+    setQuantities,
+    setQuantity,
+    addToCart,
+    removeFromCart,
+    products: sortedProducts,
+    loading: false, // We always have demo products
+    handleCategoryChange,
+    handleFilterChange,
+    activeFilter,
+    activeCategory,
+  }), [
+    quantities,
+    setQuantity,
+    addToCart,
+    removeFromCart,
+    sortedProducts,
+    handleCategoryChange,
+    handleFilterChange,
+    activeFilter,
+    activeCategory
+  ]);
+
+  if (error) {
+    console.error('Error loading products:', error);
+  }
 
   return (
     <OnchainStoreContext.Provider value={value}>
@@ -141,5 +136,9 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderReact) {
 }
 
 export function useOnchainStoreContext() {
-  return useContext(OnchainStoreContext);
+  const context = useContext(OnchainStoreContext);
+  if (!context) {
+    throw new Error('useOnchainStoreContext must be used within an OnchainStoreProvider');
+  }
+  return context;
 }

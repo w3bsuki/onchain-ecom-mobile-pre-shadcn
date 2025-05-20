@@ -6,7 +6,9 @@ import {
   HatIcon, 
   WatchIcon,
   GlassesIcon,
-  AllIcon
+  AllIcon,
+  HoodieIcon,
+  JacketIcon
 } from './ui/category-icons';
 
 export interface CategoryIcon {
@@ -16,13 +18,17 @@ export interface CategoryIcon {
   Accessories: React.ReactNode;
   Eyewear: React.ReactNode;
   All: React.ReactNode;
+  Hoodies: React.ReactNode;
+  Jackets: React.ReactNode;
 }
 
 export const categoryIcons: CategoryIcon = {
-  Shoes: <ShoesIcon className="h-6 w-6" />,
-  Shirts: <ShirtIcon className="h-6 w-6" />,
-  Hats: <HatIcon className="h-6 w-6" />,
-  Accessories: <WatchIcon className="h-6 w-6" />,
-  Eyewear: <GlassesIcon className="h-6 w-6" />,
-  All: <AllIcon className="h-6 w-6" />
+  Shoes: <ShoesIcon className="h-7 w-7" />,
+  Shirts: <ShirtIcon className="h-7 w-7" />,
+  Hats: <HatIcon className="h-7 w-7" />,
+  Accessories: <WatchIcon className="h-7 w-7" />,
+  Eyewear: <GlassesIcon className="h-7 w-7" />,
+  All: <AllIcon className="h-7 w-7" />,
+  Hoodies: <HoodieIcon className="h-7 w-7" />,
+  Jackets: <JacketIcon className="h-7 w-7" />
 }; 

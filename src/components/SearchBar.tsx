@@ -1,22 +1,50 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, ArrowRight, History, Clock } from 'lucide-react';
 import { useOnchainStoreContext } from './OnchainStoreProvider';
 import Link from 'next/link';
 import ProductImage from './ProductImage';
 import { useDebounce } from 'src/hooks/useDebounce';
 import type { Product } from 'src/types';
+import { cn } from '@/lib/utils';
 
-export default function SearchBar() {
+type SearchHistory = {
+  term: string;
+  timestamp: number;
+};
+
+export default function SearchBar({ className }: { className?: string }) {
   const { products } = useOnchainStoreContext();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
+  const [popularSearches] = useState(['t-shirts', 'sneakers', 'dress', 'hoodie', 'jacket']);
+  const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load search history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('searchHistory');
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        setSearchHistory(parsedHistory);
+      } catch (e) {
+        console.error('Failed to parse search history');
+      }
+    }
+  }, []);
+  
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
   // Close search dropdown when clicking outside
   useEffect(() => {
@@ -58,9 +86,9 @@ export default function SearchBar() {
         product.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       ) || [];
 
-      setSearchResults(filteredProducts.slice(0, 5)); // Show only first 5 results
+      setSearchResults(filteredProducts.slice(0, 6)); // Show only first 6 results
       setIsSearching(false);
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [debouncedSearchTerm, products]);
@@ -68,107 +96,220 @@ export default function SearchBar() {
   const handleClearSearch = () => {
     setSearchTerm('');
     setSearchResults([]);
-    setIsOpen(false);
     // Focus back on the input after clearing
     if (inputRef.current) {
       inputRef.current.focus();
     }
   };
 
+  const saveSearchToHistory = (term: string) => {
+    if (!term.trim()) return;
+    
+    const newHistory = [
+      { term, timestamp: Date.now() },
+      ...searchHistory.filter(item => item.term !== term).slice(0, 4)
+    ];
+    
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('searchHistory');
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    saveSearchToHistory(term);
+  };
+
+  const handleSubmitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      saveSearchToHistory(searchTerm);
+      // Optionally redirect to search results page
+      // router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   return (
-    <div className="relative w-full" ref={searchRef}>
-      <div className="relative">
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search for products..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            if (e.target.value) {
-              setIsOpen(true);
-            }
-          }}
-          onFocus={() => searchTerm && setIsOpen(true)}
-          className="border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-0 pl-10 pr-8 py-2.5 rounded-md text-sm w-full"
-        />
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Search size={16} className="text-gray-400" />
+    <div className={cn("relative w-full", className)} ref={searchRef}>
+      <form onSubmit={handleSubmitSearch}>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (e.target.value) {
+                setIsOpen(true);
+              }
+            }}
+            onFocus={() => setIsOpen(true)}
+            className="w-full rounded-lg border border-zinc-200 py-2.5 pl-10 pr-8 text-sm shadow-sm transition-colors focus:border-zinc-400 focus:outline-none focus:ring-0"
+          />
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search size={16} className="text-zinc-400" />
+          </div>
+          {searchTerm && (
+            <button
+              type="button"
+              title="Clear search"
+              onClick={handleClearSearch}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 transition-colors hover:text-zinc-700"
+            >
+              {isSearching ? (
+                <Loader2 size={16} className="animate-spin text-zinc-400" />
+              ) : (
+                <X size={16} />
+              )}
+            </button>
+          )}
         </div>
-        {searchTerm && (
-          <button
-            type="button"
-            title="Clear search"
-            onClick={handleClearSearch}
-            className="absolute flex inset-y-0 items-center right-0 pr-3 hover:text-gray-700 text-gray-400 transition-colors"
-          >
-            {isSearching ? (
-              <Loader2 size={16} className="animate-spin text-gray-400" />
-            ) : (
-              <X size={16} />
-            )}
-          </button>
-        )}
-      </div>
+      </form>
 
       {/* Search Results Dropdown */}
       {isOpen && (
-        <div className="absolute bg-white border border-gray-200 mt-1 overflow-hidden rounded-md shadow-lg w-full z-50">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl">
           {isSearching && (
             <div className="flex items-center justify-center p-4">
-              <Loader2 size={18} className="animate-spin mr-2 text-gray-400" />
-              <span className="text-gray-500 text-sm">Searching...</span>
+              <Loader2 size={18} className="mr-2 animate-spin text-zinc-400" />
+              <span className="text-sm text-zinc-500">Searching...</span>
             </div>
           )}
 
           {!isSearching && searchResults.length > 0 && (
             <>
-              <div className="border-b border-gray-100 px-4 py-2">
-                <p className="font-medium text-xs text-gray-500 uppercase tracking-wider">
+              <div className="border-b border-zinc-100 px-4 py-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
                   Search Results
                 </p>
               </div>
-              {searchResults.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className="flex group hover:bg-gray-50 items-center p-3 transition-colors"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setSearchTerm('');
-                  }}
-                >
-                  <div className="bg-gray-50 flex-shrink-0 flex h-14 items-center justify-center overflow-hidden rounded w-14">
-                    <ProductImage
-                      src={typeof product.image === 'string' ? product.image : null}
-                      alt={product.name}
-                      className="h-auto max-h-[80%] max-w-[80%] object-contain transition-transform duration-200 w-auto group-hover:scale-105"
-                      width={48}
-                      height={48}
-                    />
+              <div className="max-h-[400px] overflow-y-auto">
+                {searchResults.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.id}`}
+                    className="flex items-center p-3 transition-colors hover:bg-zinc-50"
+                    onClick={() => {
+                      setIsOpen(false);
+                      saveSearchToHistory(searchTerm);
+                      setSearchTerm('');
+                    }}
+                  >
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-zinc-50">
+                      <ProductImage
+                        src={typeof product.image === 'string' ? product.image : null}
+                        alt={product.name}
+                        className="h-auto max-h-[80%] w-auto max-w-[80%] object-contain transition-transform duration-200 group-hover:scale-105"
+                        width={48}
+                        height={48}
+                      />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <p className="text-sm font-medium text-zinc-900 line-clamp-1">{product.name}</p>
+                      <p className="text-xs font-medium text-zinc-500">${product.price.toFixed(2)}</p>
+                    </div>
+                  </Link>
+                ))}
+                <div className="flex justify-between border-t border-zinc-100 bg-zinc-50 p-3">
+                  <span className="text-xs text-zinc-500">Found {searchResults.length} results</span>
+                  <Link
+                    href={`/search?q=${encodeURIComponent(searchTerm)}`}
+                    className="flex items-center text-xs font-medium text-zinc-900 hover:underline"
+                    onClick={() => {
+                      setIsOpen(false);
+                      saveSearchToHistory(searchTerm);
+                    }}
+                  >
+                    View all <ArrowRight size={14} className="ml-1" />
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* History and Popular Searches - show when no current search or results */}
+          {!isSearching && searchTerm.trim() === '' && (
+            <>
+              {/* Recent Searches */}
+              {searchHistory.length > 0 && (
+                <div className="border-b border-zinc-100 p-2">
+                  <div className="mb-2 flex items-center justify-between px-2">
+                    <div className="flex items-center">
+                      <Clock size={14} className="mr-1 text-zinc-400" />
+                      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                        Recent Searches
+                      </p>
+                    </div>
+                    <button
+                      onClick={clearSearchHistory}
+                      className="text-xs text-zinc-500 hover:text-zinc-900"
+                    >
+                      Clear
+                    </button>
                   </div>
-                  <div className="ml-3">
-                    <p className="font-medium group-hover:text-black text-gray-900 text-sm">{product.name}</p>
-                    <p className="font-medium text-gray-500 text-xs">${product.price.toFixed(2)}</p>
+                  <div className="space-y-1">
+                    {searchHistory.map((item) => (
+                      <button
+                        key={item.timestamp}
+                        className="flex w-full items-center px-3 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+                        onClick={() => handleSearch(item.term)}
+                      >
+                        <History size={14} className="mr-2 text-zinc-400" />
+                        {item.term}
+                      </button>
+                    ))}
                   </div>
-                </Link>
-              ))}
-              <div className="bg-gray-50 border-t border-gray-100 p-2 text-center">
-                <button 
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-xs w-full"
-                >
-                  Close
-                </button>
+                </div>
+              )}
+
+              {/* Popular Searches */}
+              <div className="p-2">
+                <div className="mb-2 px-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                    Popular Searches
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 px-2 pb-2">
+                  {popularSearches.map((term) => (
+                    <button
+                      key={term}
+                      className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-200"
+                      onClick={() => handleSearch(term)}
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
               </div>
             </>
           )}
 
           {/* No Results Message */}
           {!isSearching && searchTerm && searchResults.length === 0 && (
-            <div className="p-4 text-center">
-              <p className="font-medium text-gray-900 text-sm">No products found</p>
-              <p className="mt-1 text-gray-500 text-xs">Try a different search term or browse our categories</p>
+            <div className="p-6 text-center">
+              <p className="text-sm font-medium text-zinc-900">No products found</p>
+              <p className="mt-1 text-xs text-zinc-500">Try a different search term or browse our categories</p>
+              
+              {/* Popular searches suggestions */}
+              <div className="mt-4">
+                <p className="mb-2 text-xs font-medium text-zinc-500">Try these popular searches:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {popularSearches.map((term) => (
+                    <button
+                      key={term}
+                      className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-200"
+                      onClick={() => handleSearch(term)}
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>

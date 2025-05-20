@@ -5,7 +5,7 @@ import type { Product } from 'src/types';
 import ProductImage from './ProductImage';
 import ProductModal from './ProductModal';
 import { Eye, ShoppingCart, Heart } from 'lucide-react';
-import { cn } from '@coinbase/onchainkit/theme';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';

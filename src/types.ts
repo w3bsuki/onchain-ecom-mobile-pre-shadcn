@@ -9,12 +9,15 @@ export interface Product {
   id: string;
   name: string;
   description?: string;
+  image: string | null;
   price: number;
-  image?: string | null;
-  status: 'draft' | 'published';
-  variants?: ProductVariant[];
-  categories?: ProductCategory[];
-  tags?: ProductTag[];
+  category?: string;
+  createdAt?: string;
+  salesCount?: number;
+  rating?: number;
+  reviewCount?: number;
+  discount?: number;
+  colors?: Array<{ name: string; hex: string }>;
 }
 
 export interface ProductVariant {
@@ -43,17 +46,19 @@ export type QuantityInputReact = {
   productId: string;
 };
 
-export type OnchainStoreContextType = {
-  quantities: Quantities;
-  setQuantities: (
-    quantities: Quantities | ((prev: Quantities) => Quantities),
-  ) => void;
+export interface OnchainStoreContextType {
+  quantities: Record<string, number>;
+  setQuantities: (quantities: Record<string, number>) => void;
   setQuantity: (productId: string, quantity: number) => void;
   addToCart: (productId: string) => void;
   removeFromCart: (productId: string) => void;
-  products?: Product[];
-  loading?: boolean;
-};
+  products: Product[];
+  loading: boolean;
+  handleCategoryChange: (categoryId: string) => void;
+  handleFilterChange: (filterId: string) => void;
+  activeFilter: string;
+  activeCategory: string;
+}
 
 export type QuantityInputButtonReact = {
   onClick: () => void;

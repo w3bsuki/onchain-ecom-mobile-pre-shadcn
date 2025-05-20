@@ -1,28 +1,20 @@
 import type { Metadata } from 'next';
 import { NEXT_PUBLIC_URL } from '../config';
 import './global.css';
-import dynamic from 'next/dynamic';
-
-const MedusaProviderWrapper = dynamic(
-  () => import('src/components/MedusaProviderWrapper'),
-  {
-    ssr: false,
-  },
-);
+import { StoreProvider } from '@/context/StoreProvider';
+import { MobileNavigation } from '@/components/ui/MobileNavigation';
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
 };
 
 export const metadata: Metadata = {
-  title: 'Medusa E-commerce',
-  description: 'Modern E-commerce Template',
-  openGraph: {
-    title: 'Medusa E-commerce',
-    description: 'Modern E-commerce Template',
-    images: [`${NEXT_PUBLIC_URL}/vibes/vibes-19.png`],
-  },
+  title: 'Onchain Commerce',
+  description: 'A modern e-commerce store built with Next.js and Supabase',
+  metadataBase: new URL(NEXT_PUBLIC_URL),
 };
 
 export default function RootLayout({
@@ -33,9 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MedusaProviderWrapper>
+        <StoreProvider>
           {children}
-        </MedusaProviderWrapper>
+          <MobileNavigation />
+        </StoreProvider>
       </body>
     </html>
   );
