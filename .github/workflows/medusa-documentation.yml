@@ -1,0 +1,68 @@
+name: Medusa Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/medusa/**'
+      - 'docs/**'
+      - 'scripts/generate-medusa-docs.js'
+      - 'scripts/validate-medusa-docs.js'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/medusa/**'
+      - 'docs/**'
+      - 'scripts/generate-medusa-docs.js'
+      - 'scripts/validate-medusa-docs.js'
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Validate documentation
+        run: npm run docs:validate
+        
+      - name: Generate documentation
+        run: npm run docs:generate
+        
+      - name: Archive documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: medusa-documentation
+          path: docs/generated/
+          
+      - name: List documentation issues
+        run: cat docs/generated/documentation-issues.md || true
+        
+  deploy-docs:
+    needs: docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: medusa-documentation
+          path: docs/generated/
+          
+      - name: Deploy documentation to GitHub Pages
+        # You would typically use a GitHub Pages action here
+        # This is a placeholder where you would configure your documentation deployment
+        run: |
+          echo "Documentation would be deployed to GitHub Pages or other hosting service"
+          echo "This step would be customized based on your hosting preferences"

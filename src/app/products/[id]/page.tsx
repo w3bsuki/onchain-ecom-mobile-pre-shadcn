@@ -2,27 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useOnchainStoreContext } from 'src/components/OnchainStoreProvider';
-import ProductImage from 'src/components/ProductImage';
-import Navbar from 'src/components/Navbar';
-import { Banner } from 'src/components/Banner';
+import { useOnchainStoreContext } from '@/components/OnchainStoreProvider';
+import ProductImage from '@/components/products/ProductImage';
+import Navbar from '@/components/layout/Navbar';
+import { Banner } from '@/components/layout/Banner';
 import { Star, ChevronDown, ChevronUp, Share2, ArrowLeft, Heart } from 'lucide-react';
 import Link from 'next/link';
-import MobileBottomNav from 'src/components/MobileBottomNav';
+import { MobileNavigation } from '@/components/layout/navigation/MobileNavigation';
 import { cn } from '@/lib/utils';
-import ProductImageGallery from 'src/components/ProductImageGallery';
-import { Button } from '@/components/ui/button';
-import { notFound } from 'next/navigation';
+import ProductImageGallery from '@/components/products/ProductImageGallery';
+import { Button } from 'components/ui/button';
+import { useProduct } from '@/hooks/useProduct';
+import { ProductVariantSelector } from '@/components/products/ProductVariantSelector';
 
-export default function ProductPage() {
-  const params = useParams();
-  const productId = params.id as string;
-  const { products, addToCart } = useOnchainStoreContext();
+export default function ProductPage() {  const params = useParams();
+  const productId = params?.id as string;
+  const { addToCart } = useOnchainStoreContext();
+  const { product, loading, error, usingSampleData } = useProduct(productId);
   const [quantity, setQuantity] = useState(1);
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>('description');
   const [scrolled, setScrolled] = useState(false);
   const [isWishlist, setIsWishlist] = useState(false);
-
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  
   // Scroll detection for sticky header
   useEffect(() => {
     const handleScroll = () => {
@@ -33,11 +36,68 @@ export default function ProductPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Find the product with matching ID
-  const product = products?.find((p) => p.id === productId);
+  // Set default variant when product loads
+  useEffect(() => {
+    if (product?.variants && product.variants.length > 0) {
+      setSelectedVariantId(product.variants[0].id);
+      
+      // Try to extract size from variant title or options
+      const firstVariant = product.variants[0];
+      if (firstVariant.title && firstVariant.title.includes(' / ')) {
+        // Format might be "Size / Color"
+        const size = firstVariant.title.split(' / ')[0];
+        setSelectedSize(size);
+      }
+    }
+  }, [product]);
   
-  // Related products - just a sampling of other products
-  const relatedProducts = products?.filter(p => p.id !== productId).slice(0, 4) || [];
+  // Get variant-specific data
+  const getProductPrice = () => {
+    if (!product) return 0;
+    
+    // If product has variants and a variant is selected
+    if (product.variants && product.variants.length > 0 && selectedVariantId) {
+      const variant = product.variants.find(v => v.id === selectedVariantId);
+      if (variant && variant.prices && variant.prices.length > 0) {
+        // Return price in dollars
+        return variant.prices[0].amount / 100;
+      }
+    }
+    
+    // Fallback to main product price
+    return product.price || 0;
+  };
+  
+  // Get available sizes from variants
+  const getAvailableSizes = (): string[] => {
+    if (!product?.variants) return [];
+    
+    const sizes = new Set<string>();
+    product.variants.forEach(variant => {
+      if (variant.title && variant.title.includes(' / ')) {
+        const size = variant.title.split(' / ')[0];
+        sizes.add(size);
+      }
+    });
+    
+    return Array.from(sizes);
+  };
+  
+  // Handle size selection
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
+    
+    // Find a variant with this size
+    if (product?.variants) {
+      const variant = product.variants.find(v => 
+        v.title && v.title.includes(size)
+      );
+      
+      if (variant) {
+        setSelectedVariantId(variant.id);
+      }
+    }
+  };
 
   // Mock reviews data - in a real app this would come from a database
   const reviews = [
@@ -57,8 +117,11 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (product) {
+      // For Medusa products, use the selected variant ID
+      const idToAdd = selectedVariantId || product.id;
+      
       for (let i = 0; i < quantity; i++) {
-        addToCart(product.id);
+        addToCart(idToAdd);
       }
     }
   };
@@ -66,6 +129,43 @@ export default function ProductPage() {
   const toggleAccordion = (section: string) => {
     setExpandedAccordion(expandedAccordion === section ? null : section);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Banner />
+        <Navbar />
+        <main className="container mx-auto flex flex-grow items-center justify-center px-4 pt-20">
+          <div className="text-center">
+            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-black"></div>
+            <p className="mt-4 text-gray-600">Loading product details...</p>
+          </div>
+        </main>
+        <MobileNavigation />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Banner />
+        <Navbar />
+        <main className="container mx-auto flex flex-grow px-4 pt-20">
+          <div className="mx-auto max-w-lg rounded-lg bg-red-50 p-6 text-center">
+            <h1 className="mb-4 text-2xl font-bold text-red-800">Error Loading Product</h1>
+            <p className="mb-6 text-red-700">{error.message}</p>
+            <Button asChild>
+              <Link href="/">Back to Home</Link>
+            </Button>
+          </div>
+        </main>
+        <MobileNavigation />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -81,15 +181,33 @@ export default function ProductPage() {
             </Button>
           </div>
         </main>
-        <MobileBottomNav />
+        <MobileNavigation />
       </div>
     );
+  }
+
+  // Get available sizes
+  const availableSizes = getAvailableSizes();
+  
+  // Get product images
+  const productImages = product.thumbnail ? [product.thumbnail] : [];
+  if (product.image && !productImages.includes(product.image)) {
+    productImages.push(product.image);
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Banner />
       <Navbar />
+      
+      {/* Sample data notice */}
+      {usingSampleData && (
+        <div className="bg-blue-50 mx-auto max-w-7xl mt-2 mb-0 p-3 rounded-md text-blue-800">
+          <p className="text-sm">
+            <strong>Note:</strong> Showing sample product data. Connect to Medusa backend for real product information.
+          </p>
+        </div>
+      )}
       
       <main className="container mx-auto flex-grow px-4 pt-4 pb-24 md:px-6 md:pt-8 md:pb-16">
         {/* Mobile Back Button */}
@@ -113,9 +231,9 @@ export default function ProductPage() {
         <div className="mb-6 text-sm hidden md:block">
           <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
           <span className="mx-2 text-gray-400">/</span>
-          <Link href="/" className="text-gray-600 hover:text-gray-900">Products</Link>
+          <Link href="/medusa-products" className="text-gray-600 hover:text-gray-900">Products</Link>
           <span className="mx-2 text-gray-400">/</span>
-          <span className="text-gray-900">{product.name}</span>
+          <span className="text-gray-900">{product.name || product.title}</span>
         </div>
         
         {/* Product Details */}
@@ -123,9 +241,9 @@ export default function ProductPage() {
           {/* Product Image with gallery component */}
           <div className="mb-6 md:mb-0 md:sticky md:top-24">
             <ProductImageGallery 
-              mainImage={typeof product.image === 'string' ? product.image : null}
+              mainImage={product.thumbnail || product.image}
               altImages={[]} // In a real app, you would pass alternative product images here
-              productName={product.name}
+              productName={product.name || product.title || 'Product'}
             />
           </div>
           
@@ -148,7 +266,9 @@ export default function ProductPage() {
               </button>
             </div>
             
-            <h1 className="text-xl md:text-2xl font-semibold mb-2 text-gray-900 pr-16 md:pr-0">{product.name}</h1>
+            <h1 className="text-xl md:text-2xl font-semibold mb-2 text-gray-900 pr-16 md:pr-0">
+              {product.name || product.title}
+            </h1>
             
             {/* Rating */}
             <div className="flex items-center mb-4">
@@ -168,11 +288,35 @@ export default function ProductPage() {
               </span>
             </div>
             
-            <p className="text-xl font-semibold mb-4 text-gray-900">${product.price.toFixed(2)}</p>
+            <p className="text-xl font-semibold mb-4 text-gray-900">${getProductPrice().toFixed(2)}</p>
             
             <p className="mb-6 text-gray-600 text-sm">
-              This premium product offers exceptional quality and value. Perfect for everyday use or special occasions.
+              {product.description || 'This premium product offers exceptional quality and value. Perfect for everyday use or special occasions.'}
             </p>
+            
+            {/* Size selector - only show if we have size variants */}
+            {availableSizes.length > 0 && (
+              <div className="mb-6">
+                <label className="mb-2 block font-medium text-sm text-gray-900">Size</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableSizes.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      className={cn(
+                        "border font-medium h-10 px-3 rounded-md text-sm",
+                        selectedSize === size
+                          ? "bg-black border-black text-white"
+                          : "border-gray-300 hover:border-gray-400 text-gray-900"
+                      )}
+                      onClick={() => handleSizeSelect(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {/* Stock Status */}
             <div className="mb-6">
@@ -217,6 +361,7 @@ export default function ProductPage() {
               className="hidden md:block w-full"
               onClick={handleAddToCart}
               size="lg"
+              disabled={!selectedVariantId && product.variants && product.variants.length > 0}
             >
               Add to Cart
             </Button>
@@ -240,8 +385,7 @@ export default function ProductPage() {
                 {expandedAccordion === 'description' && (
                   <div className="mt-3 text-gray-600 text-sm">
                     <p>
-                      Our premium product is crafted with attention to detail and the highest quality materials.
-                      Designed to provide long-lasting performance and satisfaction.
+                      {product.description || 'Our premium product is crafted with attention to detail and the highest quality materials. Designed to provide long-lasting performance and satisfaction.'}
                     </p>
                   </div>
                 )}
@@ -310,33 +454,6 @@ export default function ProductPage() {
             </Button>
           </div>
         </div>
-        
-        {/* Related Products */}
-        <div className="mb-10">
-          <h2 className="mb-4 text-lg md:text-xl font-semibold text-gray-900">You May Also Like</h2>
-          
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
-            {relatedProducts.map((relatedProduct) => (
-              <Link
-                href={`/products/${relatedProduct.id}`}
-                key={relatedProduct.id}
-                className="group rounded-lg border border-gray-200 p-3 transition hover:shadow-sm"
-              >
-                <div className="mb-2 aspect-square overflow-hidden">
-                  <ProductImage
-                    src={typeof relatedProduct.image === 'string' ? relatedProduct.image : null}
-                    alt={relatedProduct.name}
-                    className="h-full w-full object-cover"
-                    width={200}
-                    height={200}
-                  />
-                </div>
-                <h3 className="mb-1 text-sm font-medium truncate text-gray-900">{relatedProduct.name}</h3>
-                <p className="text-sm font-semibold text-gray-900">${relatedProduct.price.toFixed(2)}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
       </main>
       
       {/* Sticky Add to Cart bar for mobile */}
@@ -350,12 +467,13 @@ export default function ProductPage() {
           className="w-full"
           onClick={handleAddToCart}
           size="lg"
+          disabled={!selectedVariantId && product.variants && product.variants.length > 0}
         >
-          Add to Cart - ${product.price.toFixed(2)}
+          Add to Cart - ${getProductPrice().toFixed(2)}
         </Button>
       </div>
       
-      <MobileBottomNav />
+      <MobileNavigation />
     </div>
   );
-} 
+}

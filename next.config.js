@@ -7,6 +7,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+      },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
@@ -19,20 +24,31 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline';
-              style-src 'self' 'unsafe-inline';
-              img-src 'self' data: blob: https://* http://*;
-              font-src 'self';
-              object-src 'none';
-              base-uri 'self';
-              form-action 'self';
-              frame-ancestors 'none';
-              connect-src 'self' https://*.supabase.co https://*.supabase.net http://localhost:* https://localhost:*;
-              block-all-mixed-content;
-              upgrade-insecure-requests;
-            `.replace(/\s{2,}/g, ' ').trim()
+            value:
+              "default-src 'self'; " +
+              "img-src 'self' blob: data: https://*.amazonaws.com https://*.unsplash.com https://*.public.blob.vercel-storage.com http://localhost:9000; " +
+              "media-src 'self' blob: data: https://*.amazonaws.com https://*.public.blob.vercel-storage.com; " +
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.vercel-insights.com vercel.live; " +
+              "child-src 'self' blob: https://*.stripe.com; " +
+              "style-src 'self' 'unsafe-inline'; " +
+              "font-src 'self' data:; " +
+              "connect-src 'self' http://localhost:* https://localhost:* http://localhost:9000 ws://localhost:*;",
+          },
+          {
+            key: 'Access-Control-Allow-Credentials',
+            value: 'true'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET,DELETE,PATCH,POST,PUT'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-publishable-api-key'
           }
         ]
       }
@@ -56,7 +72,26 @@ const nextConfig = {
     });
     
     return config;
-  }
+  },
+  // Only add the rewrites if NEXT_PUBLIC_MEDUSA_BACKEND_URL is defined
+  async rewrites() {
+    // Check if MEDUSA_BACKEND_URL is defined
+    if (process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL) {
+      return {
+        beforeFiles: [
+          {
+            source: '/api/medusa-proxy/:path*',
+            destination: `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/:path*`,
+          },
+        ],
+      };
+    }
+    
+    // Return an empty config if NEXT_PUBLIC_MEDUSA_BACKEND_URL is not defined
+    return {
+      beforeFiles: [],
+    };
+  },
 };
 
 module.exports = nextConfig; 

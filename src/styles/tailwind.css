@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme {
+  --spacing: 0.25rem;
+  
+  /* Define responsive breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /* Define custom colors */
+  --color-primary: oklch(0.715 0.143 215.221);
+  --color-secondary: oklch(0.656 0.241 354.308);
+  --color-accent: oklch(0.627 0.265 303.9);
+  --color-muted: oklch(0.698 0.029 278.37);
+  --color-success: oklch(0.739 0.15 142.495);
+  --color-warning: oklch(0.771 0.151 86.612);
+  --color-danger: oklch(0.698 0.196 27.238);
+  --color-info: oklch(0.623 0.214 259.815);
+  
+  /* UI colors for shadcn integration */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --radius: 0.5rem;
+}
+
+/* Dark mode values */
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
+/* Custom utilities for padding */
+@utility px4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@utility py4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Responsive variants */
+@utility smpx4 {
+  @media (min-width: 640px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@utility smpy4 {
+  @media (min-width: 640px) {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+@utility mdpx4 {
+  @media (min-width: 768px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@utility mdpy4 {
+  @media (min-width: 768px) {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+@utility lgpx4 {
+  @media (min-width: 1024px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@utility lgpy4 {
+  @media (min-width: 1024px) {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Scrollbar utilities */
+@utility scrollbarthin {
+  scrollbar-width: thin;
+}
+
+@utility scrollbarthumbgray300 {
+  scrollbar-color: #d1d5db transparent;
+}
+
+@utility scrollbarthumbrounded {
+  scrollbar-width: thin;
+}
+
+@utility scrollbartrackgray100 {
+  scrollbar-color: #f3f4f6 transparent;
+}
+
+/* WebKit scrollbar styles as standard CSS */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
+
+.scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+}
+
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+} 

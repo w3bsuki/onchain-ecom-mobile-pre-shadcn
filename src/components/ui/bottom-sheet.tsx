@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, AnimatePresence, useSpring, useMotionValue } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
 interface BottomSheetProps {
@@ -28,26 +28,27 @@ export default function BottomSheet({
   const [activeSnap, setActiveSnap] = useState(initialSnap);
   const [viewportHeight, setViewportHeight] = useState(0);
   
-  // Motion values for tracking sheet position
+  // Create motion values for tracking y position
   const y = useMotionValue(0);
-  const springY = useSpring(y, { stiffness: 300, damping: 30 });
+  const springY = useMotionValue(0);
   
-  // Calculate height based on viewport and store it for animations
+  // Use callback for smoother performance
+  const calculateHeight = useCallback(() => {
+    setViewportHeight(window.innerHeight);
+  }, []);
+    // Calculate height based on viewport and store it for animations
   useEffect(() => {
-    const calculateHeight = () => {
-      const vh = window.innerHeight;
-      setViewportHeight(vh);
-    };
-
     calculateHeight();
     window.addEventListener('resize', calculateHeight);
     
     return () => window.removeEventListener('resize', calculateHeight);
-  }, []);
+  }, [calculateHeight]);
 
-  // Reset sheet position when opening
+  // Preload and recalculate on open for better performance
   useEffect(() => {
-    if (isOpen && snapPoints.length > 0 && initialSnap < snapPoints.length) {
+    if (isOpen) {
+      // Force recalculate to ensure proper dimensions
+      requestAnimationFrame(calculateHeight);
       setActiveSnap(initialSnap);
       // Apply initial snap point position
       const initialY = viewportHeight * (1 - snapPoints[initialSnap]);
@@ -157,21 +158,19 @@ export default function BottomSheet({
             initial={{ y: '100%' }}
             animate={{ y: springY }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={cn(
-              "bg-white border border-gray-200 bottom-0 fixed left-0 overflow-hidden right-0 rounded-t-xl shadow-xl w-full z-50"
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}            className={cn(
+              "bg-white bottom-0 fixed left-0 overflow-hidden right-0 rounded-t-xl shadow-xl w-full z-50"
             )}
             role="dialog"
             aria-modal="true"
             aria-labelledby="sheet-title"
-          >
-            {/* Visual drag handle */}
-            <div className="flex justify-center py-2 touch-none">
-              <div className="bg-gray-300 h-1 rounded-full w-16" />
+          >            {/* Visual drag handle */}
+            <div className="flex justify-center py-1.5 touch-none">
+              <div className="bg-gray-300 h-1 rounded-full w-12" />
             </div>
             
             {/* Header with sticky positioning */}
-            <div className="bg-white border-b border-gray-200 flex items-center justify-between p-4 sticky top-0 z-10">
+            <div className="bg-white flex items-center justify-between px-4 py-3 sticky top-0 z-10">
               {title && <h2 id="sheet-title" className="font-semibold text-lg">{title}</h2>}
               <button
                 onClick={onClose}
@@ -182,12 +181,11 @@ export default function BottomSheet({
                 <X size={20} />
               </button>
             </div>
-            
-            {/* Content with auto scrolling */}
+              {/* Content with auto scrolling */}
             <div 
-              className="overflow-y-auto overflow-x-hidden overscroll-contain pb-safe" 
+              className="overflow-y-auto overflow-x-hidden overscroll-contain" 
               style={{ 
-                maxHeight: `calc(${snapPoints[activeSnap] * 100}vh - 120px)`,
+                maxHeight: `calc(${snapPoints[activeSnap] * 100}vh - 80px)`,
                 minHeight: '150px'
               }}
             >

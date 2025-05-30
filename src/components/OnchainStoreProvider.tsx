@@ -1,7 +1,8 @@
+'use client';
+
 import { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { OnchainStoreContextType, Product } from '@/types';
-import { useProducts } from '@/hooks/useProducts';
+import type { OnchainStoreContextType } from '@/types';
 import { demoProducts } from '@/lib/demo-products';
 
 const OnchainStoreContext = createContext<OnchainStoreContextType | null>(null);
@@ -14,7 +15,6 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeFilter, setActiveFilter] = useState('newest');
-  const { products: fetchedProducts, loading, error } = useProducts();
   
   // Add cart management functions
   const setQuantity = useCallback((productId: string, quantity: number) => {
@@ -41,11 +41,16 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderProps) {
   
   // Filter products based on active category
   const filteredProducts = useMemo(() => {
-    const productsToUse = fetchedProducts?.length ? fetchedProducts : demoProducts;
-    return activeCategory === 'all'
-      ? productsToUse
-      : productsToUse.filter(product => product.category === activeCategory);
-  }, [fetchedProducts, activeCategory]);
+    if (activeCategory === 'all') {
+      return demoProducts;
+    }
+    
+    return demoProducts.filter(product => {
+      // Handle different category formats (lower case for case-insensitive comparison)
+      const productCategory = product.category?.toLowerCase();
+      return productCategory === activeCategory.toLowerCase();
+    });
+  }, [activeCategory]);
 
   // Sort products based on active filter
   const sortedProducts = useMemo(() => {
@@ -107,7 +112,7 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderProps) {
     addToCart,
     removeFromCart,
     products: sortedProducts,
-    loading: false, // We always have demo products
+    loading: false, // We're not loading data anymore
     handleCategoryChange,
     handleFilterChange,
     activeFilter,
@@ -123,10 +128,6 @@ export function OnchainStoreProvider({ children }: OnchainStoreProviderProps) {
     activeFilter,
     activeCategory
   ]);
-
-  if (error) {
-    console.error('Error loading products:', error);
-  }
 
   return (
     <OnchainStoreContext.Provider value={value}>

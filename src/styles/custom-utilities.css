@@ -1,0 +1,10 @@
+@tailwind base;
+
+@layer base {
+  /* Custom scrollbar-related utility classes */
+  .scrolling-touch {
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

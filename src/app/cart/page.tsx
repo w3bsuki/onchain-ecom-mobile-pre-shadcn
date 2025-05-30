@@ -1,14 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useOnchainStoreContext } from 'src/components/OnchainStoreProvider';
-import { Banner } from 'src/components/Banner';
-import Navbar from 'src/components/Navbar';
-import ProductImage from 'src/components/ProductImage';
+import { useOnchainStoreContext } from '@/components/OnchainStoreProvider';
+import { Banner } from '@/components/layout/Banner';
+import Navbar from '@/components/layout/Navbar';
+import ProductImage from '@/components/products/ProductImage';
 import Link from 'next/link';
 import { Trash, ArrowLeft, ShoppingBag, CreditCard } from 'lucide-react';
-import StripePaymentForm from 'src/components/StripePaymentForm';
-import * as Dialog from '@radix-ui/react-dialog';
+import StripePaymentForm from '@/components/checkout/StripePaymentForm';
+import { 
+  Root as DialogRoot, 
+  Portal as DialogPortal,
+  Overlay as DialogOverlay,
+  Content as DialogContent,
+  Title as DialogTitle,
+  Close as DialogClose 
+} from '@radix-ui/react-dialog';
 
 export default function CartPage() {
   const { products, quantities, setQuantity, removeFromCart } = useOnchainStoreContext();
@@ -229,17 +236,17 @@ export default function CartPage() {
       </main>
       
       {/* Stripe Payment Modal */}
-      <Dialog.Root open={showStripeModal} onOpenChange={setShowStripeModal}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 max-h-[85vh] w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-md bg-white p-6 shadow-lg">
-            <Dialog.Title className="mb-4 text-xl font-bold">Payment</Dialog.Title>
+      <DialogRoot open={showStripeModal} onOpenChange={setShowStripeModal}>
+        <DialogPortal>
+          <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <DialogContent className="fixed left-1/2 top-1/2 max-h-[85vh] w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-md bg-white p-6 shadow-lg">
+            <DialogTitle className="mb-4 text-xl font-bold">Payment</DialogTitle>
             <StripePaymentForm 
               amount={total} 
               description={`Order from Onchain Commerce - ${cartItems.length} items`}
               onSuccess={handleStripeSuccess}
             />
-            <Dialog.Close asChild>
+            <DialogClose asChild>
               <button 
                 type="button"
                 className="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
@@ -247,10 +254,10 @@ export default function CartPage() {
               >
                 &times;
               </button>
-            </Dialog.Close>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+            </DialogClose>
+          </DialogContent>
+        </DialogPortal>
+      </DialogRoot>
     </div>
   );
 } 

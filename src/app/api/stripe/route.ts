@@ -1,12 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16', // Use the latest API version
-});
+// Initialize Stripe with your secret key if available
+let stripe: Stripe | null = null;
+
+try {
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16', // Use the latest API version
+    });
+  }
+} catch (error) {
+  console.warn('Failed to initialize Stripe:', error);
+}
 
 export async function POST(request: NextRequest) {
+  // Check if Stripe is initialized
+  if (!stripe) {
+    return NextResponse.json(
+      { error: 'Stripe is not configured properly. STRIPE_SECRET_KEY is missing.' },
+      { status: 500 }
+    );
+  }
+
   try {
     // Parse the request body
     const body = await request.json();
@@ -44,11 +60,11 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     // Simple check to see if we can connect to Stripe
-    const isConnected = !!process.env.STRIPE_SECRET_KEY;
+    const isConnected = !!stripe && !!process.env.STRIPE_SECRET_KEY;
     
     // Get Stripe account info if connected
     let accountInfo = null;
-    if (isConnected) {
+    if (isConnected && stripe) {
       try {
         accountInfo = await stripe.accounts.retrieve();
       } catch (e) {
@@ -60,7 +76,7 @@ export async function GET() {
     return NextResponse.json({
       connected: !!accountInfo,
       mode: process.env.NODE_ENV,
-      stripeVersion: stripe.getApiField('version'),
+      stripeVersion: stripe ? stripe.getApiField('version') : 'Not initialized',
     });
   } catch (error: any) {
     console.error('Error checking Stripe connection:', error.message);

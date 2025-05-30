@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useOnchainStoreContext } from 'src/components/OnchainStoreProvider';
-import { Banner } from 'src/components/Banner';
-import Navbar from 'src/components/Navbar';
+import { useOnchainStoreContext } from '@/components/OnchainStoreProvider';
+import { Banner } from '@/components/layout/Banner';
+import Navbar from '@/components/layout/Navbar';
 import Link from 'next/link';
-import ProductImage from 'src/components/ProductImage';
+import ProductImage from '@/components/products/ProductImage';
 
 // Define categories - in a real app, these would likely come from an API
 const categories = [

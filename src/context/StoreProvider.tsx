@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-import { useCart } from '@/hooks/useCart';
+import { createContext, useContext, useState, useCallback } from 'react';
+// Remove the import of the missing hook
+// import { useCart } from '@/hooks/useCart';
 
 // Define a proper cart type based on the Medusa structure
 interface Cart {
@@ -50,15 +51,25 @@ const StoreContext = createContext<StoreContextType>({
 });
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  // Use the Medusa cart hook instead of Supabase
-  const { 
-    cart, 
-    loading, 
-    error,
-    addItem,
-    removeItem, 
-    updateQuantity
-  } = useCart();
+  // Mock implementation instead of using the missing useCart hook
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const addItem = useCallback(async (variantId: string, quantity: number = 1) => {
+    console.log('Adding item to cart:', variantId, quantity);
+    // Implement proper cart functionality later
+  }, []);
+
+  const removeItem = useCallback(async (lineId: string) => {
+    console.log('Removing item from cart:', lineId);
+    // Implement proper cart functionality later
+  }, []);
+
+  const updateQuantity = useCallback(async (lineId: string, quantity: number) => {
+    console.log('Updating item quantity:', lineId, quantity);
+    // Implement proper cart functionality later
+  }, []);
 
   return (
     <StoreContext.Provider

@@ -8,9 +8,19 @@ export type NavbarLinkReact = {
 export interface Product {
   id: string;
   name: string;
+  title?: string;  // For Medusa compatibility
   description?: string;
   image: string | null;
+  thumbnail?: string | null;  // For Medusa compatibility
   price: number;
+  variants?: Array<{  // For Medusa compatibility
+    id: string;
+    title?: string;
+    prices?: Array<{
+      amount: number;
+      currency_code: string;
+    }>;
+  }>;
   category?: string;
   createdAt?: string;
   salesCount?: number;
@@ -18,6 +28,7 @@ export interface Product {
   reviewCount?: number;
   discount?: number;
   colors?: Array<{ name: string; hex: string }>;
+  handle?: string;  // For Medusa compatibility
 }
 
 export interface ProductVariant {

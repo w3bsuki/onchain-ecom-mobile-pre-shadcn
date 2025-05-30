@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Banner } from 'src/components/Banner';
-import Navbar from 'src/components/Navbar';
+import { Banner } from '@/components/layout/Banner';
+import Navbar from '@/components/layout/Navbar';
 import Link from 'next/link';
 import { Package, ChevronRight, Search, Filter } from 'lucide-react';
 

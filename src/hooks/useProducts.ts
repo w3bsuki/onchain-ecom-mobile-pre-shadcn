@@ -1,52 +1,59 @@
-import { useState, useEffect } from 'react';
-import { medusaClient, type Product } from '@/lib/medusa-client';
+/**
+ * Re-export of useProducts hook from Medusa
+ * This file exists to maintain backward compatibility with existing imports
+ */
 
+import { useProducts as useMedusaProducts, type ProductQueryOptions } from '@/hooks/medusa/useProducts';
+import { useState, useEffect } from 'react';
+import type { Product } from '@/types/medusa';
+
+// Interface for the hook options
 interface UseProductsOptions {
   limit?: number;
-  categoryId?: string;
+  category?: string;
   featured?: boolean;
 }
 
-interface ProductFilterOptions {
-  limit?: number;
-  collection_id?: string[];
-  category_id?: string[];
-  [key: string]: unknown;
+// Interface for the hook return value
+interface UseProductsReturn {
+  products: Product[];
+  loading: boolean;
+  error: Error | null;
+  usingSampleData: boolean;
 }
 
-export function useProducts({ limit = 12, categoryId, featured }: UseProductsOptions = {}) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+// This hook provides a simplified interface compatible with the products page
+export function useProducts({ limit = 12, category, featured }: UseProductsOptions = {}): UseProductsReturn {
+  // Convert options to Medusa format
+  const queryOptions: ProductQueryOptions = {
+    limit,
+    ...(category && { category_id: category }),
+    ...(featured && { featured: true })
+  };
+
+  // Use the Medusa products hook
+  const { data: products, isLoading, error } = useMedusaProducts(queryOptions);
+  
+  // State for processed products
+  const [processedProducts, setProcessedProducts] = useState<Product[]>([]);
+  const [usingSampleData, setUsingSampleData] = useState(false);
   
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        // Build filter options
-        const options: ProductFilterOptions = { limit };
-        
-        if (featured) {
-          options.collection_id = ['featured'];
-        }
-        
-        if (categoryId) {
-          options.category_id = [categoryId];
-        }
-        
-        const { products: result } = await medusaClient.products.list(options);
-        setProducts(result);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchProducts();
-  }, [limit, categoryId, featured]);
-  
-  return { products, loading, error };
+    if (products) {
+      setProcessedProducts(products);
+      setUsingSampleData(false);
+    } else if (!isLoading && !error) {
+      // If there's no data but also no loading state or error,
+      // we might be in a disconnected state, show empty array
+      setProcessedProducts([]);
+      setUsingSampleData(false);
+    }
+  }, [products, isLoading, error]);
+
+  return {
+    products: processedProducts,
+    loading: isLoading,
+    error: error as Error | null,
+    usingSampleData
+  };
 } 

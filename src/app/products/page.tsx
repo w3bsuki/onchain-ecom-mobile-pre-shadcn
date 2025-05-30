@@ -1,12 +1,25 @@
 'use client';
 
 import { useProducts } from '@/hooks/useProducts';
-import ProductCard from '@/components/ProductCard';
+import { ProductCard } from '@/components/products/ProductCard';
 import { useState } from 'react';
 
 export default function ProductsPage() {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const { products, loading, error, usingSampleData } = useProducts({ category });
+
+  // Debug logging
+  console.log('Products page data:', { 
+    productsCount: products?.length || 0, 
+    loading, 
+    error: error?.message || null, 
+    usingSampleData,
+    firstProduct: products && products.length > 0 ? {
+      id: products[0].id,
+      title: products[0].title,
+      imageUrl: products[0].image
+    } : null
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -83,8 +96,11 @@ export default function ProductsPage() {
       
       {/* Error state */}
       {error && (
-        <div className="my-8 rounded-md bg-red-50 p-4 text-red-800">
-          <p>Error loading products: {error.message}</p>
+        <div className="my-8 text-center">
+          <h2 className="text-2xl font-bold">Error loading products</h2>
+          <p className="mt-2 text-gray-600">
+            There was an error loading the products. Please check your Medusa configuration.
+          </p>
         </div>
       )}
       

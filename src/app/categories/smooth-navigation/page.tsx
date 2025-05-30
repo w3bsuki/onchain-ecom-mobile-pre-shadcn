@@ -1,161 +1,167 @@
 'use client';
 
-import { useState } from 'react';
-import { Shirt, Footprints, Glasses, Tag, Sparkles, Music, Watch, Heart, Gift, Coffee } from 'lucide-react';
-import { MobileCategoryNav } from '@/components/ui/MobileCategoryNav';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
+import CategoryGrid from '@/components/products/categories/CategoryGrid';
+import { 
+  Shirt, 
+  ShoppingBag, 
+  Footprints, 
+  Watch, 
+  Gift, 
+  Tag, 
+  Star,
+  Zap,
+  Heart,
+  Sparkles,
+  ChevronRight
+} from 'lucide-react';
 
-// Demo categories with icons
-const categoryData = [
+// Demo categories with icons - refined for visual appeal
+const categories = [
   {
     id: 'all',
     name: 'All Products',
-    href: '/categories/smooth-navigation?category=all',
-    icon: <Tag size={16} />,
-    count: 120
-  },
-  {
-    id: 'mens',
-    name: 'Men\'s Fashion',
-    href: '/categories/smooth-navigation?category=mens',
-    icon: <Shirt size={16} />,
-    count: 32
-  },
-  {
-    id: 'womens',
-    name: 'Women\'s Fashion',
-    href: '/categories/smooth-navigation?category=womens',
-    icon: <Shirt size={16} />,
-    count: 45
-  },
-  {
-    id: 'accessories',
-    name: 'Accessories',
-    href: '/categories/smooth-navigation?category=accessories',
-    icon: <Glasses size={16} />,
-    count: 18
-  },
-  {
-    id: 'footwear',
-    name: 'Footwear',
-    href: '/categories/smooth-navigation?category=footwear',
-    icon: <Footprints size={16} />,
-    count: 24
+    icon: <ShoppingBag size={18} strokeWidth={1.5} />,
+    count: 120,
   },
   {
     id: 'new',
     name: 'New Arrivals',
-    href: '/categories/smooth-navigation?category=new',
-    icon: <Sparkles size={16} />,
-    count: 15
+    icon: <Sparkles size={18} strokeWidth={1.5} />,
+    count: 24,
   },
   {
-    id: 'music',
-    name: 'Music',
-    href: '/categories/smooth-navigation?category=music',
-    icon: <Music size={16} />,
-    count: 8
+    id: 'mens',
+    name: 'Men\'s',
+    icon: <Shirt size={18} strokeWidth={1.5} />,
+    count: 42,
   },
   {
-    id: 'watches',
-    name: 'Watches',
-    href: '/categories/smooth-navigation?category=watches',
-    icon: <Watch size={16} />,
-    count: 12
+    id: 'womens',
+    name: 'Women\'s',
+    icon: <Shirt size={18} strokeWidth={1.5} />,
+    count: 38,
   },
   {
-    id: 'gifts',
-    name: 'Gifts',
-    href: '/categories/smooth-navigation?category=gifts',
-    icon: <Gift size={16} />,
-    count: 9
+    id: 'footwear',
+    name: 'Footwear',
+    icon: <Footprints size={18} strokeWidth={1.5} />,
+    count: 26,
   },
   {
-    id: 'coffee',
-    name: 'Coffee',
-    href: '/categories/smooth-navigation?category=coffee',
-    icon: <Coffee size={16} />,
-    count: 7
+    id: 'accessories',
+    name: 'Accessories',
+    icon: <Watch size={18} strokeWidth={1.5} />,
+    count: 32,
+  },
+  {
+    id: 'bestsellers',
+    name: 'Best Sellers',
+    icon: <Star size={18} strokeWidth={1.5} />,
+    count: 18,
   },
   {
     id: 'sale',
     name: 'Sale',
-    href: '/categories/smooth-navigation?category=sale',
-    icon: <Heart size={16} />,
-    count: 29
-  }
+    icon: <Tag size={18} strokeWidth={1.5} />,
+    count: 15,
+  },
+  {
+    id: 'gifts',
+    name: 'Gift Ideas',
+    icon: <Gift size={18} strokeWidth={1.5} />,
+    count: 12,
+  },
+  {
+    id: 'trending',
+    name: 'Trending',
+    icon: <Zap size={18} strokeWidth={1.5} />,
+    count: 20,
+  },
+  {
+    id: 'favorites',
+    name: 'Favorites',
+    icon: <Heart size={18} strokeWidth={1.5} />,
+    count: 8,
+  },
 ];
 
-export default function SmoothCategoryNavDemo() {
+export default function CategoryNavigationPage() {
   const [activeCategory, setActiveCategory] = useState('all');
+  const selectedCategory = categories.find(c => c.id === activeCategory);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="font-bold mb-8 text-2xl">Smooth Category Navigation</h1>
+    <div className="mx-auto max-w-6xl px-4 py-16">
+      <div className="mb-16">
+        <h5 className="font-medium mb-2 text-center text-indigo-600 text-sm tracking-wide uppercase">Components</h5>
+        <h1 className="font-serif font-medium leading-tight mb-3 text-center text-4xl tracking-tight sm:text-5xl">
+          Category Navigation
+        </h1>
+        <p className="mx-auto max-w-2xl text-center text-lg text-zinc-500">
+          Elegant category cards with refined typography and visual hierarchy
+        </p>
+      </div>
       
-      {/* Primary category navigation */}
-      <div className="mb-8">
-        <h2 className="font-semibold mb-3 text-lg">Primary Style</h2>
-        <MobileCategoryNav 
-          categories={categoryData}
-          activeId={activeCategory}
+      {/* Primary category grid */}
+      <div className="mb-20">
+        <CategoryGrid
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
         />
       </div>
       
-      {/* Alternative style */}
-      <div className="mb-12">
-        <h2 className="font-semibold mb-3 text-lg">Alternative Style</h2>
-        <div className="bg-zinc-50 p-4 rounded-xl">
-          <MobileCategoryNav 
-            categories={categoryData.map(cat => ({
-              ...cat,
-              href: `#${cat.id}`
-            }))}
-            activeId={activeCategory}
-          />
-        </div>
-      </div>
-      
-      {/* Example content */}
-      <div className="bg-white border border-zinc-200 p-6 rounded-xl">
-        <h2 className="font-bold mb-4 text-xl">
-          {categoryData.find(c => c.id === activeCategory)?.name || 'All Products'}
-        </h2>
+      {/* Selected category showcase */}
+      <div className="bg-gradient-to-b from-zinc-50 to-white border border-zinc-100 overflow-hidden relative rounded-2xl shadow-sm">
+        <div className="absolute bg-gradient-to-r from-indigo-500/10 to-purple-500/10 h-40 inset-0 opacity-50" />
         
-        <p className="mb-6 text-zinc-600">
-          Browse our selection of {categoryData.find(c => c.id === activeCategory)?.name.toLowerCase() || 'products'}.
-          We offer the best quality items at competitive prices.
-        </p>
-        
-        {/* Simulated product grid */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          {[1, 2, 3, 4].map((item) => (
-            <div 
-              key={item} 
-              className="aspect-square animate-pulse bg-zinc-100 rounded-lg"
-            />
-          ))}
-        </div>
-        
-        {/* Category selection buttons for demo */}
-        <div className="border-t border-zinc-200 flex flex-wrap gap-2 mt-8 pt-6">
-          {categoryData.map((category) => (
-            <button
-              key={category.id}
-              className={cn(
-                "border px-3 py-1.5 rounded-md text-sm",
-                activeCategory === category.id
-                  ? "bg-teal-700 border-teal-700 text-white"
-                  : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300"
-              )}
-              onClick={() => setActiveCategory(category.id)}
-            >
-              <span className="flex items-center gap-1.5">
-                {category.icon}
-                {category.name}
-              </span>
-            </button>
-          ))}
+        <div className="px-8 py-12 relative">
+          <div className="flex flex-col gap-4 items-center justify-center text-center sm:flex-row sm:gap-6 sm:text-left">
+            <div className="flex h-16 items-center justify-center overflow-hidden relative rounded-full w-16 sm:h-20 sm:w-20">
+              <div className="absolute bg-gradient-to-b from-zinc-50 to-zinc-100 inset-0" />
+              <div className="relative">
+                {selectedCategory?.icon && React.cloneElement(selectedCategory.icon as React.ReactElement, { 
+                  size: 28,
+                  strokeWidth: 1.5,
+                  className: 'text-zinc-700' 
+                })}
+              </div>
+            </div>
+            
+            <div>
+              <div className="font-medium mb-1 text-sm text-indigo-600 tracking-wide uppercase">
+                Selected Category
+              </div>
+              <h2 className="font-serif font-medium mb-2 text-3xl tracking-tight">
+                {selectedCategory?.name}
+              </h2>
+              <p className="text-zinc-600">
+                This category contains <span className="font-medium">{selectedCategory?.count}</span> products
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-8 border-t border-zinc-200 pt-8">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="group">
+                  <div className="aspect-[4/5] bg-zinc-100 overflow-hidden relative rounded-lg">
+                    <div className="absolute bg-gradient-to-b from-black/0 to-black/10 inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="font-medium mb-1 text-sm">Product {item}</h3>
+                    <p className="flex items-center justify-between text-sm text-zinc-500">
+                      <span>$129.00</span>
+                      <span className="flex items-center text-xs text-zinc-400">
+                        View
+                        <ChevronRight size={12} className="ml-1" />
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

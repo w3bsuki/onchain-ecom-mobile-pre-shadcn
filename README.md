@@ -23,13 +23,20 @@ A high-performance, conversion-optimized e-commerce platform built with Next.js,
 ## Project Structure
 
 ```
+├── backend/              # Backend services
+│   └── medusa/           # Medusa.js backend
 ├── components/           # Reusable UI components
 │   ├── ui/               # Base UI components (shadcn/ui)
 │   └── ...               # Feature components
 ├── docs/                 # Project documentation
 │   ├── MASTER_PLAN.md    # Overall project vision and roadmap
-│   ├── Phase1.md         # Phase 1 detailed plan
+│   ├── MEDUSA_BACKEND.md # Medusa backend documentation
+│   ├── MEDUSA_DOCS_INDEX.md # Documentation index for Medusa
+│   ├── generated/        # Auto-generated documentation
 │   └── ...               # Additional documentation
+├── scripts/              # Utility scripts
+│   ├── generate-medusa-docs.js # Documentation generator
+│   └── validate-medusa-docs.js # Documentation validator
 ├── lib/                  # Shared utilities and helpers
 ├── public/               # Static assets
 ├── src/                  # Application source code
@@ -39,10 +46,43 @@ A high-performance, conversion-optimized e-commerce platform built with Next.js,
 │   ├── hooks/            # Custom React hooks
 │   ├── lib/              # Utility functions
 │   └── utils/            # Helper utilities
-├── my-medusa-store/      # Medusa.js backend
 ├── .env.local            # Environment variables (create from .env.example)
 └── ...                   # Configuration files
 ```
+
+## Documentation
+
+This project includes comprehensive documentation for both the frontend and backend components:
+
+### Medusa Backend Documentation
+
+- [Medusa Documentation Index](./docs/MEDUSA_DOCS_INDEX.md): Starting point for Medusa documentation
+- [Medusa Backend Overview](./docs/MEDUSA_BACKEND.md): Architecture and components
+- [Medusa Frontend Integration](./docs/MEDUSA_FRONTEND_INTEGRATION.md): Integration with Next.js
+- [JSDoc Templates](./docs/JSDOC_TEMPLATES.md): Documentation standards and examples
+
+### Documentation Tools
+
+We've implemented an innovative documentation automation strategy:
+
+```bash
+# Generate documentation
+npm run docs:generate
+
+# Validate documentation and find issues
+npm run docs:validate
+
+# Run both validation and generation
+npm run docs:all
+
+# Launch interactive documentation tools menu (Windows)
+npm run docs:tools
+
+# Launch interactive documentation tools menu (Unix/Linux/Mac)
+npm run docs:tools:unix
+```
+
+The documentation generator analyzes the codebase structure, extracts JSDoc/TSDoc comments, and creates comprehensive markdown documentation in the `docs/generated/` directory.
 
 ## Getting Started
 
@@ -72,19 +112,53 @@ A high-performance, conversion-optimized e-commerce platform built with Next.js,
 
 4. Set up the Medusa backend:
    ```bash
-   cd my-medusa-store
+   cd backend/medusa
    npm install
-   npm run seed
-   npm run dev
+   npm run seed # if you want to seed sample data
    ```
 
-5. In a new terminal, start the Next.js development server:
+### Running the Development Environment
+
+#### Windows (PowerShell)
+
+For Windows users, we've provided a PowerShell script that starts both servers:
+
+```powershell
+# From the root directory
+.\start-dev.ps1
+```
+
+#### Manual Start
+
+If you prefer to start services manually:
+
+1. Start the Medusa backend:
    ```bash
-   cd ..
+   cd backend/medusa
+   npm run start
+   ```
+
+2. In a new terminal, start the Next.js development server:
+   ```bash
+   # From the root directory
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Troubleshooting
+
+If you encounter issues with the Medusa API key:
+
+1. Navigate to the Medusa admin panel at http://localhost:9000/app
+2. Go to Settings > API Keys
+3. Create a new publishable API key
+4. Copy the key and add it to your `.env.local` file:
+   ```
+   NEXT_PUBLIC_MEDUSA_API_KEY=your_key_here
+   ```
+
+If you see placeholder images or SVG errors, ensure that `dangerouslyAllowSVG` is set to `true` in your `next.config.js` file.
 
 ## Development
 

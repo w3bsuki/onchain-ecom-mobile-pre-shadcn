@@ -3,42 +3,60 @@ import Medusa from "@medusajs/medusa-js";
 // Use NEXT_PUBLIC_MEDUSA_BACKEND_URL environment variable with fallback
 const NEXT_PUBLIC_MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
 
+console.log('Initializing Medusa client with URL:', NEXT_PUBLIC_MEDUSA_BACKEND_URL);
+
 export const medusaClient = new Medusa({ 
   baseUrl: NEXT_PUBLIC_MEDUSA_BACKEND_URL,
   maxRetries: 3
 });
 
-// Configure the publishable API key - this should be fetched once and reused
-let publishableApiKey: string | null = null;
+// Hard-coded publishable API key to guarantee it's set for any direct fetch request
+const PUBLISHABLE_API_KEY = 'pk_8c83b91984f77e065ff8066c422062338290c16734aff13728862b5ba8c25d50';
+
+// Configure the publishable API key
+let publishableApiKey: string | null = PUBLISHABLE_API_KEY;
 
 // Initialize the publishable API key
 export const initializeApiKey = async () => {
-  if (!publishableApiKey) {
-    try {
-      const { store } = await medusaClient.store.retrieve();
-      const { publishable_api_keys } = await medusaClient.publishableApiKeys.list();
-      
-      if (publishable_api_keys.length > 0) {
-        publishableApiKey = publishable_api_keys[0].id;
-        medusaClient.setPublishableKey(publishableApiKey);
-      }
-    } catch (error) {
-      console.error("Failed to initialize publishable API key:", error);
-    }
+  if (publishableApiKey) {
+    medusaClient.setPublishableKey(publishableApiKey);
+    console.log("Setting publishable API key:", publishableApiKey);
+    return publishableApiKey;
   }
-  return publishableApiKey;
+  
+  try {
+    // First try to get publishable API keys
+    const { publishable_api_keys } = await medusaClient.publishableApiKeys.list();
+    
+    if (publishable_api_keys && publishable_api_keys.length > 0) {
+      publishableApiKey = publishable_api_keys[0].id;
+      medusaClient.setPublishableKey(publishableApiKey);
+      console.log("Found and set publishable API key:", publishableApiKey);
+      return publishableApiKey;
+    } else {
+      console.log("No publishable API keys found, using hardcoded key");
+      medusaClient.setPublishableKey(PUBLISHABLE_API_KEY);
+      return PUBLISHABLE_API_KEY;
+    }
+  } catch (error) {
+    console.error("Error fetching publishable API key:", error);
+    console.log("Falling back to hardcoded API key");
+    medusaClient.setPublishableKey(PUBLISHABLE_API_KEY);
+    return PUBLISHABLE_API_KEY;
+  }
 };
 
-// Call initialization immediately
+// Make sure to initialize the API key when the client is imported
 initializeApiKey();
+
+// Simple development setup without API key
+console.log("Using Medusa client in development mode");
 
 export default medusaClient;
 
 // Utility functions for common operations
 export const getProducts = async (options: Record<string, unknown> = {}) => {
   try {
-    // Ensure we have a publishable API key
-    await initializeApiKey();
     const { products, count } = await medusaClient.products.list(options);
     return { products, count };
   } catch (error) {
@@ -49,8 +67,6 @@ export const getProducts = async (options: Record<string, unknown> = {}) => {
 
 export const getProduct = async (id: string) => {
   try {
-    // Ensure we have a publishable API key
-    await initializeApiKey();
     const { product } = await medusaClient.products.retrieve(id);
     return product;
   } catch (error) {
@@ -61,8 +77,6 @@ export const getProduct = async (id: string) => {
 
 export const getCategories = async (options: Record<string, unknown> = {}) => {
   try {
-    // Ensure we have a publishable API key
-    await initializeApiKey();
     const { product_categories } = await medusaClient.productCategories.list(options);
     return product_categories;
   } catch (error) {
@@ -73,8 +87,6 @@ export const getCategories = async (options: Record<string, unknown> = {}) => {
 
 export const getCategory = async (id: string) => {
   try {
-    // Ensure we have a publishable API key
-    await initializeApiKey();
     const { product_category } = await medusaClient.productCategories.retrieve(id);
     return product_category;
   } catch (error) {

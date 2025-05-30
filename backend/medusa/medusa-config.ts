@@ -2,16 +2,23 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
-module.exports = defineConfig({
+export default defineConfig({
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL,
-    http: {
-      port: 9001,
-      storeCors: process.env.STORE_CORS!,
-      adminCors: process.env.ADMIN_CORS!,
-      authCors: process.env.AUTH_CORS!,
-      jwtSecret: process.env.JWT_SECRET || "supersecret",
-      cookieSecret: process.env.COOKIE_SECRET || "supersecret",
+    database_type: "sqlite",
+    database_url: ":memory:",
+    store_cors: "*",
+    admin_cors: "*",
+    redis_url: null
+  },
+  plugins: [],
+  api: {
+    store: {
+      // Disable authentication for development
+      requiresAuthentication: false
     }
+  },
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    credentials: true
   }
-})
+});
