@@ -77,18 +77,18 @@ const NavItem = memo(function NavItem({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center rounded-md px-3 py-2.5 text-sm font-light text-white/80 transition-colors hover:text-white",
+        "flex items-center rounded-md px-3.5 py-3 text-sm font-medium text-white/80 transition-colors hover:text-white",
         isActive && "text-white",
-        category.highlight && "font-medium text-white"
+        category.highlight && "font-semibold text-white"
       )}
     >
-      <span className="mr-1.5">{category.icon}</span>
+      <span className="mr-2">{category.icon}</span>
       <span>{category.name}</span>
       {category.subcategories && (
         <FiChevronDown 
-          size={14} 
+          size={16} 
           className={cn(
-            "ml-0.5 transition-transform", 
+            "ml-1 transition-transform", 
             isActive && "rotate-180"
           )} 
         />
@@ -297,11 +297,11 @@ export default function Navbar() {
         className={cn(
           "fixed left-0 right-0 top-0 z-[80] bg-black/90 backdrop-blur-sm duration-200 transition-all",
           scrolled && "shadow-md",
-          "top-[34px] sm:top-[40px]"
+          "top-[36px] sm:top-[44px]"
         )}
       >
         <div className="mx-auto px-3 sm:px-6">
-          <div className="flex h-12 sm:h-14 items-center justify-between">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
             {/* Left side - Menu button (mobile) */}
             <div className="flex md:hidden">
               <Button
@@ -309,10 +309,10 @@ export default function Navbar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => updateNavState('menu', !navState.menu)}
-                className="h-9 w-9 rounded-full text-white"
+                className="h-10 w-10 rounded-full text-white"
                 aria-label="Open menu"
               >
-                <BsGrid size={20} />
+                <BsGrid size={22} />
               </Button>
             </div>
 
@@ -320,14 +320,14 @@ export default function Navbar() {
             <div className="absolute left-1/2 flex -translate-x-1/2 items-center md:static md:left-auto md:translate-x-0">
               <Link 
                 href="/"
-                className="scale-[0.85] transition-transform hover:scale-[0.83] active:scale-[0.82] sm:scale-95"
+                className="scale-90 transition-transform hover:scale-[0.88] active:scale-[0.87] sm:scale-100 sm:hover:scale-[0.98]"
                 onClick={() => updateNavState('dropdown', null)}
               >
                 <CustomLogo />
               </Link>
               
               {/* Desktop Navigation - hidden on mobile */}
-              <nav className="ml-8 hidden items-center space-x-1.5 md:flex">
+              <nav className="ml-8 hidden items-center space-x-2 md:flex">
                 {categories.map((category) => (
                   <div key={category.name} className="relative">
                     <NavItem
@@ -349,7 +349,7 @@ export default function Navbar() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {/* Desktop Search - hidden on mobile */}
               <div className="hidden w-60 lg:block">
                 <SearchDialog

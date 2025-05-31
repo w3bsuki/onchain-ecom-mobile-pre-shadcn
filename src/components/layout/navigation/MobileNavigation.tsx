@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Filter, Tag, Circle, Sliders, SlidersHorizontal, X, ShoppingBag, Heart, User, Home, Check } from 'lucide-react';
+import { Filter, ShoppingBag, Search, User, Home, X, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from 'components/ui/button';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface Filter {
+interface FilterOption {
   id: string;
   label: string;
   icon: React.FC<{ size?: number; color?: string; className?: string }>;
@@ -18,19 +18,11 @@ interface Filter {
 export function MobileNavigation() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [isScrolledDown, setIsScrolledDown] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   
   useEffect(() => {
     setIsMounted(true);
-    
-    // Add scroll listener to show/hide filters
-    const handleScroll = () => {
-      setIsScrolledDown(window.scrollY > 200);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Only lock scrolling when a filter is active
@@ -46,33 +38,35 @@ export function MobileNavigation() {
     };
   }, [activeFilter]);
   
-  if (!isMounted) return null;
+  if (!isMounted) {
+    return null;
+  }
   
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home, href: '/' },
-    { id: 'wishlist', label: 'Wishlist', icon: Heart, href: '/wishlist' },
-    { id: 'cart', label: 'Cart', icon: ShoppingBag, href: '/cart' },
-    { id: 'account', label: 'Account', icon: User, href: '/account' },
+    { id: 'home', label: 'HOME', icon: Home, href: '/' },
+    { id: 'search', label: 'SEARCH', icon: Search, href: '/search' },
+    { id: 'filters', label: 'FILTERS', icon: Filter, href: '#', onClick: () => setActiveFilter('category') },
+    { id: 'cart', label: 'CART', icon: ShoppingBag, href: '/cart' },
+    { id: 'account', label: 'ACCOUNT', icon: User, href: '/account' },
   ];
   
-  const filters: Filter[] = [
-    { id: 'size', label: 'Size', icon: Tag },
-    { id: 'color', label: 'Color', icon: Circle },
-    { id: 'category', label: 'Category', icon: Filter },
-    { id: 'price', label: 'Price', icon: Sliders },
-    { id: 'sort', label: 'Sort', icon: SlidersHorizontal }
+  const filters: FilterOption[] = [
+    { id: 'category', label: 'Category', icon: Filter, appliedCount: 0 },
+    { id: 'size', label: 'Size', icon: Filter, appliedCount: 0 },
+    { id: 'color', label: 'Color', icon: Filter, appliedCount: 0 },
+    { id: 'price', label: 'Price', icon: Filter, appliedCount: 0 },
+    { id: 'sort', label: 'Sort By', icon: ChevronDown, appliedCount: 0 },
   ];
   
   const filterContent: Record<string, JSX.Element> = {
     size: (
       <div className="space-y-5">
-        <h3 className="text-base font-medium">Select Size</h3>
         <div className="flex flex-wrap gap-2">
           {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
             <Button 
               key={size}
               variant="outline"
-              className="h-12 w-16 text-base hover:bg-black hover:text-white"
+              className="h-12 w-[calc(33.33%-8px)] text-base hover:bg-black hover:text-white"
             >
               {size}
             </Button>
@@ -83,25 +77,28 @@ export function MobileNavigation() {
     
     color: (
       <div className="space-y-5">
-        <h3 className="text-base font-medium">Select Color</h3>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {[
             { name: 'Black', hex: '#000000' },
             { name: 'White', hex: '#FFFFFF' },
             { name: 'Gray', hex: '#808080' },
             { name: 'Red', hex: '#FF0000' },
-            { name: 'Blue', hex: '#0000FF' }
+            { name: 'Blue', hex: '#0000FF' },
+            { name: 'Green', hex: '#008000' },
+            { name: 'Yellow', hex: '#FFFF00' },
+            { name: 'Purple', hex: '#800080' }
           ].map(color => (
             <button 
               key={color.name}
-              className="group flex h-[70px] w-[70px] flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 p-0 transition-all hover:border-gray-400"
+              type="button"
+              className="group flex flex-col items-center justify-center gap-1.5 rounded-lg p-2 transition-all"
             >
               <div 
-                className="relative h-8 w-8 rounded-full ring-1 ring-gray-200"
-                style={{ backgroundColor: color.hex }}
+                className="relative h-12 w-12 rounded-full shadow-sm transition-transform group-hover:scale-110 group-active:scale-95"
+                style={{ backgroundColor: color.hex, border: color.hex === '#FFFFFF' ? '1px solid #e5e5e5' : 'none' }}
               >
                 {color.name === 'Black' && (
-                  <Check className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-white" />
+                  <CheckCircle2 className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-white text-black" />
                 )}
               </div>
               <span className="text-xs font-medium">{color.name}</span>
@@ -112,19 +109,20 @@ export function MobileNavigation() {
     ),
     
     category: (
-      <div className="space-y-5">
-        <h3 className="text-base font-medium">Shop by Category</h3>
-        <div className="flex flex-col gap-2.5">
-          {['All', 'T-Shirts', 'Jeans', 'Dresses', 'Shoes'].map(category => (
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2">
+          {['All Products', 'T-Shirts', 'Jeans', 'Dresses', 'Shoes', 'Accessories', 'Jackets'].map((category, index) => (
             <Button 
               key={category}
-              variant={category === 'All' ? 'default' : 'outline'}
+              variant={index === 0 ? "default" : "outline"}
               className={cn(
-                "justify-start text-base h-12 w-full",
-                category === 'All' ? "bg-black text-white hover:bg-black/90" : ""
+                "justify-between text-base h-12 w-full rounded-lg font-medium",
+                index === 0 ? "bg-black text-white hover:bg-black/90" : "",
+                index === 0 && "after:ml-2 after:h-5 after:w-5 after:rounded-full after:content-[''] after:bg-white/20"
               )}
             >
               {category}
+              {index === 0 && <CheckCircle2 className="h-5 w-5 text-white" />}
             </Button>
           ))}
         </div>
@@ -133,7 +131,6 @@ export function MobileNavigation() {
     
     price: (
       <div className="space-y-5">
-        <h3 className="text-base font-medium">Price Range</h3>
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
@@ -153,8 +150,8 @@ export function MobileNavigation() {
             />
           </div>
         </div>
-        <div className="mt-5 flex flex-col gap-2.5">
-          {['Under $25', '$25 - $50', '$50 - $100', '$100+'].map(range => (
+        <div className="flex flex-col gap-2">
+          {['Under $25', '$25 - $50', '$50 - $100', 'Over $100'].map(range => (
             <Button 
               key={range}
               variant="outline"
@@ -168,110 +165,101 @@ export function MobileNavigation() {
     ),
     
     sort: (
-      <div className="space-y-5">
-        <h3 className="text-base font-medium">Sort By</h3>
-        <div className="flex flex-col gap-2.5">
-          {['Featured', 'Newest', 'Price: Low to High', 'Price: High to Low'].map((option, i) => (
+      <div className="space-y-2">
+        <div className="flex flex-col gap-2">
+          {[
+            { name: 'Featured', desc: 'Our curated selection' },
+            { name: 'Newest', desc: 'Recently added items' },
+            { name: 'Price: Low to High', desc: 'Lowest price first' },
+            { name: 'Price: High to Low', desc: 'Highest price first' },
+            { name: 'Ratings', desc: 'Highest rated first' },
+            { name: 'Popularity', desc: 'Best sellers first' }
+          ].map((option, i) => (
             <Button 
-              key={option}
-              variant={i === 0 ? 'default' : 'outline'}
+              key={option.name}
+              variant="outline"
               className={cn(
-                "justify-start text-base h-12 w-full",
-                i === 0 ? "bg-black text-white hover:bg-black/90" : "hover:bg-black hover:text-white"
+                "flex h-auto w-full flex-col items-start justify-start gap-0.5 p-4 rounded-lg",
+                i === 1 ? "border-black bg-black text-white hover:bg-black/90" : "hover:border-black"
               )}
             >
-              {option}
+              <span className="font-medium">{option.name}</span>
+              <span className="text-xs text-left opacity-70">{option.desc}</span>
+              {i === 1 && <CheckCircle2 className="absolute right-3 h-5 w-5 text-white" />}
             </Button>
           ))}
         </div>
       </div>
     )
   };
-
-  // Only show filters on product pages
-  const showFilters = pathname === '/' || pathname.includes('/products') || pathname.includes('/categories');
   
   return (
     <>
-      {/* Fixed bottom navigation bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-md shadow-[0_-1px_5px_rgba(0,0,0,0.05)] md:hidden">
-        <div className="safe-area-bottom flex h-16 items-center justify-around px-1">
-          {navItems.map(item => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={cn(
-                  "flex w-full flex-col items-center justify-center py-1.5",
-                  "transition-colors active:opacity-70",
-                  isActive ? "text-black" : "text-gray-500"
-                )}
-              >
-                <div className={cn(
-                  "mb-1 flex h-6 w-6 items-center justify-center",
-                  isActive && "relative"
-                )}>
-                  <item.icon className={cn(
-                    "h-6 w-6",
-                    isActive ? "stroke-[2.5px]" : "stroke-[1.5px]"
-                  )} />
-                  {isActive && (
-                    <div className="absolute -bottom-1 h-1 w-1 rounded-full bg-black" />
-                  )}
+      {/* Premium Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+        {/* Floating Navigation Bar */}
+        <div className="mx-4 mb-4">
+          <div className="flex h-16 items-center justify-around rounded-xl bg-black/95 px-1 backdrop-blur-lg shadow-[0_8px_16px_rgba(0,0,0,0.25)]">
+            {navItems.map(item => {
+              const isActive = item.id === 'filters' 
+                ? !!activeFilter 
+                : pathname === item.href;
+              
+              const NavItemContent = (
+                <div key={`content-${item.id}`} className="relative flex w-full flex-col items-center justify-center py-1">
+                  <div className="relative">
+                    {isActive && (
+                      <motion.div
+                        layoutId="navBackground"
+                        className="absolute inset-0 h-10 w-10 -translate-x-2.5 -translate-y-2.5 rounded-full bg-white"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <div className="relative z-10 flex h-5 w-5 items-center justify-center">
+                      <item.icon 
+                        className={cn(
+                          "h-[22px] w-[22px] transition-all",
+                          isActive ? "stroke-black" : "stroke-white/80"
+                        )} 
+                      />
+                    </div>
+                  </div>
+                  
+                  <span 
+                    className={cn(
+                      "mt-1 text-[10px] font-medium tracking-wide transition-all",
+                      isActive ? "text-white" : "text-white/70"
+                    )}
+                  >
+                    {item.label}
+                  </span>
                 </div>
-                <span className="text-[10px] font-medium">{item.label}</span>
-              </Link>
-            );
-          })}
+              );
+              
+              return item.id === 'filters' ? (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveFilter('category')}
+                  className="w-full"
+                >
+                  {NavItemContent}
+                </button>
+              ) : (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="w-full"
+                >
+                  {NavItemContent}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Fixed filter bar - appears when scrolling down on product pages */}
-      {showFilters && (
-        <AnimatePresence>
-          {isScrolledDown && (
-            <motion.div 
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-16 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 shadow-lg backdrop-blur-md md:hidden"
-            >
-              <div className="flex h-14 items-center overflow-x-auto px-4 no-scrollbar">
-                <div className="flex w-full justify-between gap-2">
-                  {filters.map(filter => {
-                    const isActive = activeFilter === filter.id;
-                    return (
-                      <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id === activeFilter ? null : filter.id)}
-                        className={cn(
-                          "flex flex-1 items-center justify-center gap-1.5 rounded-full border py-2 px-3",
-                          "transition-all active:scale-95",
-                          isActive 
-                            ? "bg-black text-white border-black" 
-                            : "text-gray-700 border-gray-300 bg-white/50"
-                        )}
-                      >
-                        <filter.icon className="h-4 w-4" />
-                        <span className="text-xs font-medium whitespace-nowrap">{filter.label}</span>
-                        {filter.appliedCount && (
-                          <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-medium text-white">
-                            {filter.appliedCount}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
-
-      {/* Bottom Sheet */}
+      {/* Filter Bottom Sheet */}
       <AnimatePresence>
         {activeFilter && (
           <>
@@ -281,7 +269,7 @@ export function MobileNavigation() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveFilter(null)}
-              className="fixed bottom-0 left-0 right-0 top-0 z-40 bg-black/40"
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
             />
             
             {/* Sheet Content */}
@@ -290,47 +278,54 @@ export function MobileNavigation() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[90vh] flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl"
+              className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[85vh] flex-col overflow-hidden rounded-t-3xl bg-white shadow-xl"
             >
               {/* Handle */}
-              <div className="flex justify-center py-2 touch-none">
-                <div className="h-1 w-12 rounded-full bg-gray-300" />
+              <div className="flex justify-center py-3 touch-none">
+                <div className="h-1 w-16 rounded-full bg-zinc-300" />
               </div>
               
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-                <h2 className="text-lg font-semibold">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+                <h2 className="text-xl font-semibold text-zinc-900">
                   {filters.find(f => f.id === activeFilter)?.label}
                 </h2>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setActiveFilter(null)}
-                  className="rounded-full h-8 w-8"
+                  className="rounded-full h-10 w-10 hover:bg-zinc-100"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                   <span className="sr-only">Close</span>
                 </Button>
               </div>
               
               {/* Content */}
-              <div className="flex-1 overflow-y-auto overscroll-contain p-5">
+              <div className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain p-6">
                 {filterContent[activeFilter]}
               </div>
               
               {/* Actions */}
-              <div className="sticky bottom-0 border-t border-gray-200 bg-white p-4 safe-area-bottom">
+              <div className="sticky bottom-0 border-t border-zinc-100 bg-white p-5 safe-area-bottom">
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 h-12 rounded-full"
+                    className="flex-1 h-14 rounded-xl border-zinc-200 font-medium text-base"
                     onClick={() => setActiveFilter(null)}
                   >
                     Clear All
                   </Button>
                   <Button
-                    className="flex-1 h-12 rounded-full bg-black hover:bg-black/90"
-                    onClick={() => setActiveFilter(null)}
+                    className="flex-1 h-14 rounded-xl bg-black hover:bg-black/90 font-medium text-base"
+                    onClick={() => {
+                      setActiveFilter(null);
+                      // In a real app, this would apply filters
+                      // For demo, just navigate to show the filter works
+                      if (activeFilter === 'category') {
+                        router.push('/categories/all');
+                      }
+                    }}
                   >
                     Apply Filters
                   </Button>
@@ -342,7 +337,7 @@ export function MobileNavigation() {
       </AnimatePresence>
 
       {/* Bottom spacing */}
-      <div className="h-16 md:hidden" />
+      <div className="h-24 md:hidden" />
     </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { ShoppingCart, Heart, Eye } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Heart, Eye, ShoppingBag, Star, Plus, Check } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useOnchainStoreContext } from '../OnchainStoreProvider';
@@ -39,17 +39,28 @@ interface ProductCardProps {
     category?: string;
     isNew?: boolean;
     isHot?: boolean;
+    isFeatured?: boolean;
+    isSoldOut?: boolean;
   };
+  aspectRatio?: "portrait" | "square";
+  variant?: "default" | "minimal";
+  className?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ 
+  product, 
+  aspectRatio = "portrait", 
+  variant = "default",
+  className
+}: ProductCardProps) {
   const [showQuickView, setShowQuickView] = useState(false);
   const [isWishlist, setIsWishlist] = useState(false);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useOnchainStoreContext();
   
   // Price calculations
-  const getPrice = () => {
+  const getPrice = useCallback(() => {
     if (typeof product.price === 'number') {
       return product.price * 100;
     }
@@ -62,7 +73,7 @@ export function ProductCard({ product }: ProductCardProps) {
       return p.currency_code.toLowerCase() === 'usd';
     })?.amount || 0;
     return usdPrice;
-  };
+  }, [product.price, product.variants]);
 
   const basePrice = getPrice();
   const discountedPrice = product.discount ? basePrice * (1 - product.discount) : null;
@@ -72,166 +83,286 @@ export function ProductCard({ product }: ProductCardProps) {
 
   // Colors
   const hasColors = product.colors && product.colors.length > 0;
-  const selectedColor = hasColors ? product.colors[selectedColorIndex] : null;
+  
+  // Rating display
+  const hasRating = typeof product.rating === 'number';
+  const ratingValue = hasRating ? product.rating : 0;
+  const showReviewCount = hasRating && product.reviewCount && product.reviewCount > 0;
   
   // Event handlers
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (variantId) {
       addToCart(variantId);
     }
-  };
+  }, [addToCart, variantId]);
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlist(!isWishlist);
-  };
+    setIsWishlist(prev => !prev);
+  }, []);
 
-  const handleQuickView = (e: React.MouseEvent) => {
+  const handleQuickView = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowQuickView(true);
-  };
+  }, []);
 
-  const handleColorSelect = (index: number, e: React.MouseEvent) => {
+  const handleColorSelect = useCallback((index: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedColorIndex(index);
-  };
+  }, []);
+
+  // If product is sold out, disable add to cart functionality
+  const isDisabled = product.isSoldOut;
 
   return (
-    <div className="group relative border-b pb-4 sm:border sm:rounded sm:pb-0">
-      {/* Product image */}
-      <Link href={productLink} className="block">
-        <div className="relative overflow-hidden bg-gray-50">
+    <div 
+      className={cn(
+        "group relative touch-manipulation bg-white transition-all duration-300",
+        isHovered && "z-10 md:shadow-sm md:shadow-black/5",
+        className
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Product image with hover effect */}
+      <Link href={productLink} className="block overflow-hidden">
+        <div 
+          className={cn(
+            "relative overflow-hidden bg-zinc-50 border border-zinc-100",
+            aspectRatio === "portrait" ? "aspect-[3/4]" : "aspect-square"
+          )}
+        >
           <ProductImage
             alt={product.title || product.name || 'Product'}
-            className="h-full w-full object-cover"
+            className={cn(
+              "h-full w-full object-cover transition-transform duration-700",
+              isHovered ? "scale-105" : "scale-100"
+            )}
             height={400}
             width={400}
             src={product.thumbnail || product.image || DEFAULT_PRODUCT_IMAGE}
             priority={false}
           />
           
-          {/* Badges */}
-          <div className="absolute left-1 top-1">
+          {/* Premium Badge Stack */}
+          <div className="absolute left-3 top-3 flex flex-col gap-1.5 z-10">
             {product.discount && (
-              <Badge className="text-[10px] bg-red-500">
+              <Badge 
+                className="rounded-sm bg-black px-1.5 py-0.5 text-[10px] tracking-wide uppercase font-medium text-white shadow-sm"
+              >
                 {Math.round(product.discount * 100)}% OFF
+              </Badge>
+            )}
+            {product.isNew && (
+              <Badge 
+                className="rounded-sm bg-emerald-600 px-1.5 py-0.5 text-[10px] tracking-wide uppercase font-medium text-white shadow-sm"
+              >
+                NEW
+              </Badge>
+            )}
+            {product.isFeatured && (
+              <Badge 
+                className="rounded-sm bg-amber-600 px-1.5 py-0.5 text-[10px] tracking-wide uppercase font-medium text-white shadow-sm"
+              >
+                FEATURED
+              </Badge>
+            )}
+            {product.isSoldOut && (
+              <Badge 
+                className="rounded-sm bg-zinc-800 px-1.5 py-0.5 text-[10px] tracking-wide uppercase font-medium text-white shadow-sm"
+              >
+                SOLD OUT
               </Badge>
             )}
           </div>
           
-          {/* Wishlist button - top right */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute right-1 top-1 h-8 w-8 rounded-full bg-white/80 p-0"
-            onClick={handleWishlist}
-          >
-            <Heart className={cn("h-4 w-4", isWishlist ? "fill-red-500 text-red-500" : "")} />
-          </Button>
+          {/* Quick View Button - Left Side */}
+          <div className={cn(
+            "absolute bottom-2 left-2 z-10",
+            "opacity-100 md:opacity-0 transition-opacity duration-200",
+            isHovered && "opacity-100"
+          )}>
+            <Button
+              type="button"
+              size="icon"
+              className="h-10 w-10 rounded-full bg-white shadow-md hover:bg-gray-50 active:scale-95 transition-transform"
+              onClick={handleQuickView}
+              title="Quick view"
+              aria-label="Quick view"
+            >
+              <Eye className="h-4 w-4 text-zinc-700" />
+            </Button>
+          </div>
+          
+          {/* Floating Quick Actions - Top Right */}
+          <div className={cn(
+            "absolute right-2 top-2 z-10 flex flex-col gap-2",
+            "opacity-0 md:opacity-0 transition-opacity duration-200",
+            isHovered && "opacity-100"
+          )}>
+            {/* Wishlist Button */}
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 rounded-full border border-zinc-200 bg-white/90 backdrop-blur-sm p-0 shadow-sm hover:bg-white active:scale-95 transition-transform"
+              onClick={handleWishlist}
+              title="Add to wishlist"
+              aria-label="Add to wishlist"
+            >
+              <Heart className={cn("h-3.5 w-3.5", isWishlist && "fill-red-500 text-red-500")} />
+            </Button>
+          </div>
+          
+          {/* Floating Add To Cart Button - Premium Mobile Experience */}
+          <div className={cn(
+            "absolute bottom-2 right-2 z-10",
+            "opacity-100 md:opacity-0 transition-opacity duration-200",
+            isHovered && "opacity-100"
+          )}>
+            <Button
+              type="button"
+              size="icon"
+              className={cn(
+                "h-10 w-10 rounded-full shadow-md active:scale-95 transition-transform",
+                isDisabled 
+                  ? "bg-zinc-300 cursor-not-allowed" 
+                  : "bg-black hover:bg-zinc-800"
+              )}
+              onClick={handleAddToCart}
+              title={isDisabled ? "Sold out" : "Add to cart"}
+              aria-label={isDisabled ? "Sold out" : "Add to cart"}
+              disabled={isDisabled}
+            >
+              {product.variants?.[0]?.id && isWishlist ? (
+                <Check className="h-4 w-4 text-white" />
+              ) : (
+                <Plus className="h-4 w-4 text-white" />
+              )}
+            </Button>
+          </div>
         </div>
       </Link>
       
-      {/* Product info */}
-      <div className="px-2 pt-2">
-        {/* Single line title */}
-        <Link href={productLink}>
-          <h3 className="truncate text-sm font-medium leading-tight">
+      {/* Product Info - Modern Layout */}
+      <div className="px-1 py-3 space-y-1.5">
+        {/* Brand & Category (Optional) */}
+        {product.category && (
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500 font-medium">
+            {product.category}
+          </div>
+        )}
+        
+        {/* Product Title */}
+        <Link href={productLink} className="block group-hover:underline transition-all duration-200 underline-offset-2 decoration-zinc-300">
+          <h3 className="text-sm font-medium leading-tight text-black line-clamp-2">
             {product.title || product.name || 'Product'}
           </h3>
         </Link>
         
-        {/* Tiny category */}
-        {product.category && (
-          <p className="text-[10px] text-muted-foreground">
-            {product.category}
-          </p>
+        {/* Rating Stars */}
+        {hasRating && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={`star-${product.id}-${i}`}
+                  size={12}
+                  className={cn(
+                    "text-zinc-300",
+                    i < Math.floor(ratingValue) && "fill-amber-400 text-amber-400",
+                    i === Math.floor(ratingValue) && ratingValue % 1 > 0 && "fill-amber-400 text-amber-400 opacity-50"
+                  )}
+                />
+              ))}
+            </div>
+            {showReviewCount && (
+              <span className="text-[10px] text-zinc-500">
+                ({product.reviewCount})
+              </span>
+            )}
+          </div>
         )}
         
-        {/* Color chips - tiny with selected indicator */}
+        {/* Modern Price Display */}
+        <div className="flex items-baseline gap-2">
+          <span className={cn(
+            "font-medium text-black",
+            discountedPrice !== null && "text-red-600",
+            isDisabled && "text-zinc-500"
+          )}>
+            ${discountedPrice !== null ? formatPrice(discountedPrice) : formatPrice(basePrice)}
+          </span>
+          {discountedPrice !== null && (
+            <span className="text-xs text-zinc-500 line-through">
+              ${formatPrice(basePrice)}
+            </span>
+          )}
+        </div>
+        
+        {/* Color Variants - Premium Design */}
         {hasColors && (
-          <div className="mt-1.5 flex gap-1">
+          <div className="mt-2 flex flex-wrap gap-1.5 -mx-0.5 px-0.5">
             {product.colors.map((color, index) => (
               <button
                 type="button"
                 key={`color-${product.id}-${color.name}`}
                 onClick={(e) => handleColorSelect(index, e)}
                 className={cn(
-                  "h-4 w-4 rounded-full",
+                  "h-5 w-5 rounded-full transition-all duration-200 flex items-center justify-center",
                   selectedColorIndex === index 
-                    ? "ring-1 ring-black" 
-                    : "ring-1 ring-gray-200"
+                    ? "ring-1 ring-offset-2 ring-black scale-110" 
+                    : "ring-1 ring-zinc-200 hover:ring-zinc-300"
                 )}
                 style={{ backgroundColor: color.hex }}
-                aria-label={selectedColorIndex === index ? 'Selected color: ' + color.name : 'Color: ' + color.name}
+                aria-label={color.name}
                 title={color.name}
-              />
+              >
+                {selectedColorIndex === index && (
+                  <Check className={cn(
+                    "h-3 w-3", 
+                    color.hex === "#FFFFFF" || color.hex === "#FFFFFFF" ? "text-black" : "text-white"
+                  )} />
+                )}
+              </button>
             ))}
           </div>
         )}
         
-        {/* Price row */}
-        <div className="mt-1.5 flex items-center justify-between">
-          {/* Price */}
-          <div className="flex items-baseline gap-1">
-            <span className="font-medium">
-              ${discountedPrice !== null ? formatPrice(discountedPrice) : formatPrice(basePrice)}
-            </span>
-            {discountedPrice !== null && (
-              <span className="text-xs text-muted-foreground line-through">
-                ${formatPrice(basePrice)}
-              </span>
-            )}
-          </div>
-          
-          {/* Mobile action buttons */}
-          <div className="flex items-center gap-1 sm:hidden">
+        {/* Desktop-only Add To Cart - Hidden on mobile */}
+        {variant === "default" && (
+          <div className="mt-3 hidden md:block">
             <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 rounded-full p-0"
-              onClick={handleQuickView}
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </Button>
-            
-            <Button
-              size="icon"
+              type="button"
               variant="default"
-              className="h-7 w-7 rounded-full p-0"
+              size="sm"
+              className={cn(
+                "h-9 w-full rounded-md text-xs font-medium text-white transition-all",
+                isDisabled 
+                  ? "bg-zinc-300 cursor-not-allowed" 
+                  : "bg-black hover:bg-zinc-800 active:scale-[0.98] active:bg-zinc-900"
+              )}
               onClick={handleAddToCart}
-              disabled={!variantId}
+              disabled={isDisabled}
             >
-              <ShoppingCart className="h-3.5 w-3.5" />
+              <ShoppingBag className="mr-1.5 h-3.5 w-3.5" />
+              {isDisabled ? "Sold Out" : "Add to Cart"}
             </Button>
           </div>
-        </div>
-        
-        {/* Desktop add to cart - hidden on mobile */}
-        <div className="mt-2 hidden sm:block">
-          <Button 
-            className="w-full"
-            size="sm"
-            onClick={handleAddToCart}
-            disabled={!variantId}
-          >
-            Add to cart
-          </Button>
-        </div>
+        )}
       </div>
-      
+
       {/* Quick view modal */}
-      {showQuickView && (
-        <ProductQuickView
-          isOpen={showQuickView}
-          onClose={() => setShowQuickView(false)}
-          product={product}
-        />
-      )}
+      <ProductQuickView
+        product={product}
+        isOpen={showQuickView}
+        onClose={() => setShowQuickView(false)}
+      />
     </div>
   );
 } 

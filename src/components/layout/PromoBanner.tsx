@@ -29,10 +29,10 @@ const CloseButton = memo(function CloseButton({ onClick }: { onClick: () => void
     <button 
       type="button"
       onClick={onClick}
-      className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center text-white/80 hover:text-white transition-colors"
+      className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center text-white/80 hover:text-white transition-colors"
       aria-label="Close promo banner"
     >
-      <X size={8} className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+      <X size={10} className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
     </button>
   );
 });
@@ -41,13 +41,13 @@ const CloseButton = memo(function CloseButton({ onClick }: { onClick: () => void
 const PromoItem = memo(function PromoItem({ message, link }: { message: string; link: string }) {
   return (
     <div className="flex items-center space-x-1.5 sm:space-x-2">
-      <div className="text-center text-[8px] font-medium uppercase tracking-wider text-white sm:text-[10px]">
+      <div className="text-center text-[9px] font-medium uppercase tracking-wider text-white sm:text-[10px]">
         {message}
       </div>
       
       <Link 
         href={link}
-        className="rounded-sm bg-white px-1.5 py-0.5 text-[8px] font-medium text-black hover:bg-white/90 transition-colors sm:px-2 sm:text-[10px]"
+        className="rounded-sm bg-white px-1.5 py-0.5 text-[9px] font-medium text-black hover:bg-white/90 transition-colors sm:px-2 sm:text-[10px]"
       >
         SHOP
       </Link>
@@ -91,7 +91,7 @@ export function PromoBanner() {
 
   return (
     <div className="relative z-[90] w-full border-b border-zinc-800 bg-zinc-900">
-      <div className="mx-auto flex h-6 sm:h-7 max-w-7xl items-center justify-center px-2 sm:px-3">
+      <div className="mx-auto flex h-7 sm:h-8 max-w-7xl items-center justify-center px-2 sm:px-3">
         <div className="flex-1 md:flex-none" />
         
         <PromoItem 

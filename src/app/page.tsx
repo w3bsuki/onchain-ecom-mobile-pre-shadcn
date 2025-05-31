@@ -2,8 +2,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { MobileCategorySidebar } from '@/components/ui/MobileCategorySidebar';
 import { Button } from '@/components/ui/button';
-import { FaShirt, FaLayerGroup, FaBagShopping, FaFire } from 'react-icons/fa6';
-import { FiArrowRight, FiSearch, FiHome, FiUser, FiShoppingCart, FiSliders, FiTrendingUp, FiPercent } from 'react-icons/fi';
+import { FaShirt, FaLayerGroup, FaBagShopping } from 'react-icons/fa6';
+import { FiSearch, FiHome, FiUser, FiShoppingCart, FiSliders, FiTrendingUp, FiPercent, FiPlus } from 'react-icons/fi';
 import { Check, RotateCcw } from 'lucide-react';
 import SiteFooter from '@/components/layout/site-footer';
 import HeroCarousel from '@/components/products/hero-carousel';
@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import BottomSheet from '@/components/ui/bottom-sheet';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
 
 // Pre-defined category cards data to avoid recreating on each render
 const categoryCards = [
@@ -22,7 +21,7 @@ const categoryCards = [
   { id: 'shorts', name: 'Shorts', icon: <FaLayerGroup size={18} />, count: 64 },
   { id: 'shoes', name: 'Shoes', icon: <FaBagShopping size={18} />, count: 78 },
   { id: 'denim', name: 'Denim', icon: <FaLayerGroup size={18} />, count: 53 },
-  { id: 'jackets', name: 'Jackets', icon: <FaFire size={18} />, count: 42 },
+  { id: 'jackets', name: 'Jackets', icon: <FaBagShopping size={18} />, count: 42 },
 ];
 
 // Pre-defined filter options to avoid recreating on each render
@@ -35,9 +34,9 @@ const filterOptions = [
 
 // Default quick filters
 const DEFAULT_QUICK_FILTERS = [
-  { id: 'new', name: 'NEW', icon: <FaFire size={16} /> },
-  { id: 'hot', name: 'TRENDING', icon: <FiTrendingUp size={16} /> },
-  { id: 'sale', name: 'SALE', icon: <FiPercent size={16} /> },
+  { id: 'new', name: 'NEW ARRIVALS', icon: <FiPlus size={14} /> },
+  { id: 'trending', name: 'TRENDING', icon: <FiTrendingUp size={14} /> },
+  { id: 'sale', name: 'SALE', icon: <FiPercent size={14} /> },
 ];
 
 // Default sizes for filters
@@ -120,18 +119,35 @@ const BRAND_LOGOS = [
   }
 ];
 
+// Define product interface to fix any[] type issue
+interface ProductVariant {
+  id: string;
+  prices?: {
+    amount: number;
+    currency_code?: string;
+  }[];
+}
+
+interface Product {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnail?: string;
+  variants?: ProductVariant[];
+}
+
 export default function Home() {
   // Component state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('newest');
   const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
   const [showBottomNav, setShowBottomNav] = useState(false);
   const heroSectionRef = useRef<HTMLElement>(null);
 
-  // Products state
-  const [products, setProducts] = useState<any[]>([]);
+  // Products state with proper typing
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -182,12 +198,12 @@ export default function Home() {
           setProducts(data.products);
         } else {
           console.log("No products found, using demo products");
-          setProducts(DEMO_PRODUCTS);
+          setProducts(DEMO_PRODUCTS as Product[]);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching products:", err);
-        setError(err);
-        setProducts(DEMO_PRODUCTS);
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setProducts(DEMO_PRODUCTS as Product[]);
       } finally {
         setLoading(false);
       }
@@ -219,84 +235,278 @@ export default function Home() {
       />
 
       <main className="flex-grow">
-        <section ref={heroSectionRef} className="h-[100svh] w-full relative overflow-hidden">
-          <HeroCarousel />
-        </section>
-
-        {/* Shop by Category Quick Filters - Premium E-commerce Style */}
-        <div className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto">
-            <div className="grid grid-cols-3 divide-x divide-zinc-200 border-t border-zinc-200">
+        {/* Hero Section - Fixed height to avoid whitespace */}
+        <section className="relative w-full h-screen">
+          <div ref={heroSectionRef} className="h-full w-full">
+            <HeroCarousel />
+          </div>
+          
+          {/* Premium Quick Filters - Attached directly to bottom of hero */}
+          <div className="absolute bottom-0 left-0 right-0 bg-white border-b border-zinc-200 z-10">
+            <div className="grid grid-cols-3 divide-x divide-zinc-200">
               {DEFAULT_QUICK_FILTERS.map((qf) => (
                 <button
                   key={qf.id}
                   type="button"
                   onClick={() => setActiveQuickFilter(activeQuickFilter === qf.id ? null : qf.id)}
                   className={cn(
-                    "relative flex flex-col items-center justify-center py-5 px-2 transition-colors",
+                    "relative flex items-center justify-center py-5 transition-all duration-200",
                     activeQuickFilter === qf.id 
-                      ? 'bg-zinc-50' 
-                      : 'bg-white hover:bg-zinc-50'
+                      ? 'bg-black text-white' 
+                      : 'bg-white text-black hover:bg-zinc-50'
                   )}
                 >
-                  <span className={cn(
-                    "flex h-8 w-8 items-center justify-center mb-1.5",
-                    activeQuickFilter === qf.id 
-                      ? 'text-black' 
-                      : 'text-zinc-500'
-                  )}>
-                    {qf.icon}
+                  <span className="flex items-center space-x-2.5">
+                    <span className="text-current">{qf.icon}</span>
+                    <span className="text-xs font-medium tracking-widest uppercase">
+                      {qf.name}
+                    </span>
                   </span>
-                  <span className={cn(
-                    "text-sm font-semibold uppercase",
-                    activeQuickFilter === qf.id ? 'text-black' : 'text-zinc-700'
-                  )}>
-                    {qf.name}
-                  </span>
-                  {activeQuickFilter === qf.id && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
-                  )}
                 </button>
               ))}
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* Shop by Brand - Updated Design */}
+        <section className="py-10 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm uppercase font-medium tracking-widest">Shop by Brand</h3>
+              <Link href="/brands" className="text-xs font-medium hover:underline flex items-center gap-1 group">
+                View All <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              </Link>
+            </div>
+            
+            <div className="scrollbar-hide grid grid-flow-col auto-cols-max gap-8 md:gap-12 overflow-x-auto pb-4 -mx-4 px-4">
+              {BRAND_LOGOS.map((brand) => (
+                <Link
+                  key={brand.id}
+                  href={`/brands/${brand.id}`}
+                  className="flex-shrink-0 group flex flex-col items-center"
+                >
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-50 rounded-lg flex items-center justify-center group-hover:bg-zinc-100 transition-all duration-200 group-hover:shadow-md">
+                    <img 
+                      src={brand.logoUrl} 
+                      alt={brand.name} 
+                      className="w-12 h-12 md:w-14 md:h-14 object-contain opacity-80 group-hover:opacity-100 transition-opacity" 
+                    />
+                  </div>
+                  <span className="mt-3 text-xs md:text-sm font-medium text-zinc-700 group-hover:text-black transition-colors">
+                    {brand.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 pt-6 md:pt-8">
-          {/* Category Cards - Improved Design */}
-          <section className="mb-10">
-            <div className="container mx-auto px-4">
-              {/* Mobile: Horizontal scroll, Desktop: Grid */}
+        <div className="container mx-auto px-4">
+          {/* Shop by Category - Updated Design with Horizontal Scroll */}
+          <section className="py-10">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm uppercase font-medium tracking-widest">Shop by Category</h3>
+              <Link href="/categories" className="text-xs font-medium hover:underline flex items-center gap-1 group">
+                View All <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              </Link>
+            </div>
+            
+            {/* Horizontal scroll for all devices */}
+            <div className="scrollbar-hide grid grid-flow-col auto-cols-max gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+              {categoryCards.map((category) => (
+                <Link 
+                  key={category.id}
+                  href={`/categories/${category.id}`} 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveCategory(activeCategory === category.id ? null : category.id);
+                  }}
+                  className={cn(
+                    "group relative flex flex-col items-center justify-center px-6 py-5 rounded-lg transition-colors min-w-[150px] md:min-w-[160px]",
+                    activeCategory === category.id
+                      ? "bg-black text-white" 
+                      : "bg-zinc-50 hover:bg-zinc-100"
+                  )}
+                >
+                  <div className={cn(
+                    "flex h-14 w-14 items-center justify-center mb-3 rounded-full transition-colors",
+                    activeCategory === category.id
+                      ? "bg-zinc-800" 
+                      : "bg-white group-hover:bg-white"
+                  )}>
+                    {React.cloneElement(category.icon, { 
+                      className: activeCategory === category.id ? "text-white" : "text-black", 
+                      size: 20 
+                    })}
+                  </div>
+                  <h3 className="text-sm font-medium text-center">
+                    {category.name}
+                  </h3>
+                  <p className={cn(
+                    "mt-1 text-xs font-medium",
+                    activeCategory === category.id ? "text-zinc-400" : "text-zinc-500"
+                  )}>
+                    {category.count} products
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+          
+          {/* Featured Collections - Updated Design */}
+          <section className="py-10">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm uppercase font-medium tracking-widest">Featured Collections</h3>
+              <Link href="/collections" className="text-xs font-medium hover:underline flex items-center gap-1 group">
+                View All <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              </Link>
+            </div>
+
+            <div className="relative w-full overflow-hidden rounded-xl">
+              {/* Collection Carousel */}
               <div className="relative">
-                <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:gap-4 lg:grid-cols-6">
-                  {categoryCards.map((category) => (
-                    <Link 
-                      key={category.id}
-                      href={`/categories/${category.id}`} 
-                      className="h-[160px] w-[130px] flex-shrink-0 rounded-md border border-zinc-200 bg-white p-4 text-center transition-all hover:border-black md:w-auto flex flex-col items-center justify-center"
-                    >
-                      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100">
-                        {React.cloneElement(category.icon, { className: "text-black", size: 20 })}
+                <div className="overflow-hidden rounded-xl">
+                  <div className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
+                    {/* First Collection Slide */}
+                    <div className="min-w-full shrink-0 snap-center">
+                      <div className="relative flex h-[350px] sm:h-[400px] w-full items-center overflow-hidden bg-black text-white rounded-xl">
+                        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black via-transparent to-black opacity-40" />
+                        
+                        <div className="absolute inset-0 flex items-center">
+                          <img 
+                            src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2187&auto=format&fit=crop"
+                            alt="Strike Collection" 
+                            className="h-full w-full object-cover object-center opacity-80"
+                          />
+                        </div>
+                        
+                        <div className="relative z-20 w-full px-6 sm:px-10">
+                          <div className="max-w-xl">
+                            <h2 className="mb-3 text-3xl sm:text-5xl font-bold tracking-tight">
+                              STRIKE
+                            </h2>
+                            <p className="mb-6 sm:mb-8 text-sm sm:text-lg font-light tracking-wider text-zinc-200">
+                              Premium essentials crafted for the modern lifestyle
+                            </p>
+                            <Button 
+                              variant="outline"
+                              size="lg"
+                              className="bg-transparent border-white text-white hover:bg-white hover:text-black rounded-full px-6"
+                              asChild={true}
+                            >
+                              <Link href="/collections/strike">Shop Collection</Link>
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="text-sm font-medium">
-                        {category.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        {category.count} products
-                      </p>
-                    </Link>
+                    </div>
+
+                    {/* Second Collection Slide */}
+                    <div className="min-w-full shrink-0 snap-center">
+                      <div className="relative flex h-[350px] sm:h-[400px] w-full items-center overflow-hidden bg-zinc-900 text-white rounded-xl">
+                        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black via-transparent to-black opacity-40" />
+                        
+                        <div className="absolute inset-0 flex items-center">
+                          <img 
+                            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop"
+                            alt="Exclusive Collection" 
+                            className="h-full w-full object-cover object-center opacity-80"
+                          />
+                        </div>
+                        
+                        <div className="relative z-20 w-full px-6 sm:px-10">
+                          <div className="max-w-xl">
+                            <h2 className="mb-3 text-3xl sm:text-5xl font-bold tracking-tight">
+                              EXCLUSIVE
+                            </h2>
+                            <p className="mb-6 sm:mb-8 text-sm sm:text-lg font-light tracking-wider text-zinc-200">
+                              Limited edition pieces for those who stand out
+                            </p>
+                            <Button 
+                              variant="outline"
+                              size="lg"
+                              className="bg-transparent border-white text-white hover:bg-white hover:text-black rounded-full px-6"
+                              asChild={true}
+                            >
+                              <Link href="/collections/exclusive">Shop Collection</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Third Collection Slide */}
+                    <div className="min-w-full shrink-0 snap-center">
+                      <div className="relative flex h-[350px] sm:h-[400px] w-full items-center overflow-hidden bg-zinc-800 text-white rounded-xl">
+                        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black via-transparent to-black opacity-40" />
+                        
+                        <div className="absolute inset-0 flex items-center">
+                          <img 
+                            src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2070&auto=format&fit=crop"
+                            alt="Essentials Collection" 
+                            className="h-full w-full object-cover object-center opacity-80"
+                          />
+                        </div>
+                        
+                        <div className="relative z-20 w-full px-6 sm:px-10">
+                          <div className="max-w-xl">
+                            <h2 className="mb-3 text-3xl sm:text-5xl font-bold tracking-tight">
+                              ESSENTIALS
+                            </h2>
+                            <p className="mb-6 sm:mb-8 text-sm sm:text-lg font-light tracking-wider text-zinc-200">
+                              Timeless basics for your everyday wardrobe
+                            </p>
+                            <Button 
+                              variant="outline"
+                              size="lg"
+                              className="bg-transparent border-white text-white hover:bg-white hover:text-black rounded-full px-6"
+                              asChild={true}
+                            >
+                              <Link href="/collections/essentials">Shop Collection</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Carousel Navigation Dots - Enhanced */}
+                <div className="mt-6 flex justify-center gap-3">
+                  {[0, 1, 2].map((index) => (
+                    <button
+                      key={`nav-dot-${index}`}
+                      type="button"
+                      className="h-2 w-8 rounded-full bg-zinc-300 transition-colors hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2"
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
                   ))}
                 </div>
               </div>
             </div>
           </section>
           
-          {/* Separator */}
-          <Separator className="my-8" />
+          {/* Products Grid Section */}
+          <section className="py-10">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm uppercase font-medium tracking-widest">All Products</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-zinc-500" id="sort-label">Sort by:</span>
+                <select 
+                  className="text-xs font-medium border-none bg-transparent focus:outline-none focus:ring-0"
+                  value={activeFilter}
+                  onChange={(e) => setActiveFilter(e.target.value)}
+                  aria-labelledby="sort-label"
+                  title="Sort products"
+                >
+                  {filterOptions.map(option => (
+                    <option key={option.id} value={option.id}>{option.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           
-          {/* PRODUCTS GRID - Removed headings */}
-          <section className="mb-12">
             {/* Loading state */}
             {loading && (
               <div className="flex h-64 items-center justify-center">
@@ -309,31 +519,55 @@ export default function Home() {
               <div className="my-4 rounded-md border border-red-300 bg-red-50 p-4">
                 <h3 className="text-lg font-medium text-red-800">Error Loading Products</h3>
                 <p className="text-red-700">
-                  {(error as any).message || "There was an error loading the products."}
+                  {error.message || "There was an error loading the products."}
                 </p>
               </div>
             )}
             
             {/* Products grid - Simple implementation */}
             {!loading && !error && (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {products.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={{
-                      id: product.id,
-                      title: product.title,
-                      name: product.title,
-                      description: product.description,
-                      thumbnail: product.thumbnail,
-                      image: product.thumbnail,
-                      price: product.variants?.[0]?.prices?.[0]?.amount ? 
-                        product.variants[0].prices[0].amount / 100 : 0,
-                      variants: product.variants || []
-                    }} 
-                  />
-                ))}
-          </div>
+              <>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {products.map(product => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        name: product.title,
+                        description: product.description,
+                        thumbnail: product.thumbnail,
+                        image: product.thumbnail,
+                        price: product.variants?.[0]?.prices?.[0]?.amount ? 
+                          product.variants[0].prices[0].amount / 100 : 0,
+                        variants: product.variants || [],
+                        // Add demo data for showcase
+                        rating: Math.random() * 2 + 3, // Random rating between 3-5
+                        reviewCount: Math.floor(Math.random() * 50) + 5,
+                        colors: product.id.charCodeAt(0) % 3 === 0 ? [
+                          { name: "Black", hex: "#000000" },
+                          { name: "White", hex: "#FFFFFF" },
+                          { name: "Blue", hex: "#3b82f6" }
+                        ] : undefined,
+                        isNew: product.id.charCodeAt(0) % 5 === 0,
+                        discount: product.id.charCodeAt(0) % 7 === 0 ? 0.2 : undefined,
+                        category: ["Clothing", "Accessories", "Footwear"][product.id.charCodeAt(0) % 3],
+                      }} 
+                      aspectRatio={product.id.charCodeAt(0) % 2 === 0 ? "portrait" : "square"}
+                    />
+                  ))}
+                </div>
+                
+                {/* Mobile view all button */}
+                <div className="mt-8 text-center md:hidden">
+                  <Button
+                    variant="outline"
+                    className="h-10 w-full max-w-xs rounded-md border-zinc-300 text-sm font-medium"
+                  >
+                    View All Products
+                  </Button>
+                </div>
+              </>
             )}
           </section>
         </div>
@@ -403,8 +637,9 @@ export default function Home() {
                 <AccordionContent className="px-1 pb-3 pt-1">
                   <div className="flex flex-wrap gap-2 px-2">
                     {DEFAULT_SIZES.map((size) => (
-                      <div
+                      <button
                         key={size}
+                        type="button"
                         onClick={() => {
                           setTempSelectedSizes(prev => {
                             const newSizes = prev.includes(size) 
@@ -413,18 +648,6 @@ export default function Home() {
                             return newSizes;
                           });
                         }}
-                        onKeyUp={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            setTempSelectedSizes(prev => {
-                              const newSizes = prev.includes(size) 
-                                ? prev.filter(s => s !== size)
-                                : [...prev, size];
-                              return newSizes;
-                            });
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
                         className={cn(
                           "flex h-9 min-w-[48px] cursor-pointer select-none items-center justify-center rounded-lg border text-xs font-medium transition-colors",
                           tempSelectedSizes.includes(size)
@@ -433,7 +656,7 @@ export default function Home() {
                         )}
                       >
                         {size}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </AccordionContent>
@@ -574,62 +797,64 @@ export default function Home() {
         </BottomSheet>
         
         {/* Bottom Navigation Bar - Improved Design */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-zinc-200 bg-white shadow-lg">
-          <div className="grid h-16 grid-cols-5">
-            {/* Home */}
-            <Link 
-              href="/"
-              className="flex flex-col items-center justify-center gap-1 p-1"
-            >
-              <FiHome className="h-6 w-6" />
-              <span className="text-xs font-medium">Home</span>
-            </Link>
-            
-            {/* Search */}
-            <Link 
-              href="/search"
-              className="flex flex-col items-center justify-center gap-1 p-1"
-            >
-              <FiSearch className="h-6 w-6" />
-              <span className="text-xs font-medium">Search</span>
-            </Link>
-            
-            {/* Filter Button - Center with larger touch target */}
-            <button
-              type="button"
-              onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-              className="relative flex flex-col items-center justify-center"
-            >
-              <div className="absolute -top-6 flex h-12 w-12 items-center justify-center rounded-full bg-black text-white shadow-lg">
-                <FiSliders className="h-6 w-6" />
-              </div>
-              <div className="mt-6">
-                <span className="text-xs font-medium">Filter</span>
-              </div>
-            </button>
-            
-            {/* Cart */}
-            <Link 
-              href="/cart"
-              className="flex flex-col items-center justify-center gap-1 p-1"
-            >
-              <FiShoppingCart className="h-6 w-6" />
-              <span className="text-xs font-medium">Cart</span>
-            </Link>
-            
-            {/* Account */}
-            <Link 
-              href="/account"
-              className="flex flex-col items-center justify-center gap-1 p-1"
-            >
-              <FiUser className="h-6 w-6" />
-              <span className="text-xs font-medium">Account</span>
-            </Link>
+        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
+          <div className="border-t border-zinc-200 bg-black shadow-lg">
+            <div className="flex h-16 items-center justify-around px-1">
+              {/* Home */}
+              <Link 
+                href="/"
+                className="relative flex w-full flex-col items-center justify-center py-1"
+              >
+                <FiHome className="h-[22px] w-[22px] stroke-white/80" />
+                <span className="mt-1 text-[10px] font-medium tracking-wide text-white/70">HOME</span>
+              </Link>
+              
+              {/* Search */}
+              <Link 
+                href="/search"
+                className="relative flex w-full flex-col items-center justify-center py-1"
+              >
+                <FiSearch className="h-[22px] w-[22px] stroke-white/80" />
+                <span className="mt-1 text-[10px] font-medium tracking-wide text-white/70">SEARCH</span>
+              </Link>
+              
+              {/* Filter Button */}
+              <button
+                type="button"
+                onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
+                className="relative flex w-full flex-col items-center justify-center py-1"
+              >
+                <FiSliders className="h-[22px] w-[22px] stroke-white/80" />
+                <span className="mt-1 text-[10px] font-medium tracking-wide text-white/70">FILTERS</span>
+              </button>
+              
+              {/* Cart */}
+              <Link 
+                href="/cart"
+                className="relative flex w-full flex-col items-center justify-center py-1"
+              >
+                <FiShoppingCart className="h-[22px] w-[22px] stroke-white/80" />
+                <span className="mt-1 text-[10px] font-medium tracking-wide text-white/70">CART</span>
+              </Link>
+              
+              {/* Account */}
+              <Link 
+                href="/account"
+                className="relative flex w-full flex-col items-center justify-center py-1"
+              >
+                <FiUser className="h-[22px] w-[22px] stroke-white/80" />
+                <span className="mt-1 text-[10px] font-medium tracking-wide text-white/70">ACCOUNT</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Bottom spacing to prevent content from being hidden behind navigation */}
+      <div className="h-20 md:h-0" />
       
       <SiteFooter />
     </div>
   );
 }
+

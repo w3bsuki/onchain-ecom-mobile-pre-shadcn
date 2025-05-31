@@ -20,13 +20,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BANNER_EVENTS } from "../layout/Banner";
+import { PROMO_BANNER_VISIBILITY_CHANGE } from "../layout/PromoBanner";
 
 // Conversion-optimized hero items with clear value propositions
 const carouselItems = [
   {
     id: 1,
-    title: "PREMIUM ESSENTIALS",
-    subtitle: "Elevate your style with our exclusive collection",
+    title: "MINIMALIST ESSENTIALS",
+    subtitle: "Timeless pieces designed for everyday versatility",
     cta: "SHOP NOW",
     image: {
       mobile: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?q=80&w=750&auto=format&fit=crop",
@@ -37,7 +39,7 @@ const carouselItems = [
   {
     id: 2,
     title: "NEW ARRIVALS",
-    subtitle: "Discover the latest trends for the season",
+    subtitle: "Clean, contemporary designs for the modern wardrobe",
     cta: "EXPLORE",
     image: {
       mobile: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=750&auto=format&fit=crop",
@@ -47,9 +49,9 @@ const carouselItems = [
   },
   {
     id: 3,
-    title: "LIMITED EDITION",
-    subtitle: "Exclusive pieces, available for a limited time",
-    cta: "SHOP LIMITED",
+    title: "LIMITED COLLECTION",
+    subtitle: "Exclusive pieces with refined details and premium quality",
+    cta: "VIEW COLLECTION",
     image: {
       mobile: "https://images.unsplash.com/photo-1583744946564-b52d01e7f922?q=80&w=750&auto=format&fit=crop",
       desktop: "https://images.unsplash.com/photo-1583744946564-b52d01e7f922?q=80&w=1920&auto=format&fit=crop",
@@ -84,7 +86,7 @@ const HeroImage = memo(function HeroImage({
   );
 });
 
-// Carousel indicator component
+// Clean, minimal indicator 
 const CarouselIndicator = memo(function CarouselIndicator({
   index,
   isActive,
@@ -98,14 +100,14 @@ const CarouselIndicator = memo(function CarouselIndicator({
     <button
       type="button"
       onClick={onClick}
-      className="group p-2 -m-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+      className="group focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
       aria-label={`Go to slide ${index + 1}`}
       aria-current={isActive ? "true" : "false"}
     >
-      <div className="h-2 w-8 md:w-10 flex items-center justify-center">
+      <div className="flex items-center justify-center h-12 w-12 -m-4">
         <div className={cn(
-          "h-[3px] w-full transition-all duration-300",
-          isActive ? "bg-white" : "bg-white/30 group-hover:bg-white/50"
+          "h-[2px] w-5 sm:w-6 transition-all duration-300 ease-out",
+          isActive ? "bg-white w-8 sm:w-10" : "bg-zinc-600 group-hover:bg-zinc-400"
         )} />
       </div>
     </button>
@@ -115,6 +117,69 @@ const CarouselIndicator = memo(function CarouselIndicator({
 export default function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [autoAdvance, setAutoAdvance] = useState<boolean>(true);
+  const [bannerVisible, setBannerVisible] = useState<boolean>(true);
+  const [promoBannerVisible, setPromoBannerVisible] = useState<boolean>(true);
+  
+  // Listen for banner visibility changes
+  useEffect(() => {
+    const handleBannerChange = (event: CustomEvent) => {
+      setBannerVisible(event.detail.isVisible);
+    };
+
+    const handlePromoBannerChange = (event: CustomEvent) => {
+      setPromoBannerVisible(event.detail.isVisible);
+    };
+    
+    window.addEventListener(
+      BANNER_EVENTS.VISIBILITY_CHANGE, 
+      handleBannerChange as EventListener
+    );
+    
+    window.addEventListener(
+      PROMO_BANNER_VISIBILITY_CHANGE, 
+      handlePromoBannerChange as EventListener
+    );
+    
+    return () => {
+      window.removeEventListener(
+        BANNER_EVENTS.VISIBILITY_CHANGE, 
+        handleBannerChange as EventListener
+      );
+      
+      window.removeEventListener(
+        PROMO_BANNER_VISIBILITY_CHANGE, 
+        handlePromoBannerChange as EventListener
+      );
+    };
+  }, []);
+  
+  // Calculate dynamic height based on banner visibility
+  const getHeroHeight = () => {
+    let offset = 0;
+    if (bannerVisible) {
+      offset += 36; // Banner height on mobile
+    }
+    if (promoBannerVisible) {
+      offset += 28; // Promo banner height on mobile
+    }
+    
+    const mobileHeight = `calc(100svh - ${offset}px)`;
+    
+    let smOffset = 0;
+    if (bannerVisible) {
+      smOffset += 44; // Banner height on desktop
+    }
+    if (promoBannerVisible) {
+      smOffset += 32; // Promo banner height on desktop
+    }
+    
+    const desktopHeight = `calc(100svh - ${smOffset}px)`;
+    
+    return {
+      mobile: mobileHeight,
+      desktop: desktopHeight
+    };
+  };
   
   // Pause auto-advance when user interacts with carousel
   const pauseAutoAdvance = useCallback(() => {
@@ -154,9 +219,15 @@ export default function HeroCarousel() {
 
   const currentItem = carouselItems[currentIndex];
 
+  const heroHeight = getHeroHeight();
+
   return (
     <div 
-      className="relative h-[calc(100svh-46px)] sm:h-[calc(100svh-55px)] w-full overflow-hidden bg-black"
+      className="relative w-full overflow-hidden bg-black sm:h-[var(--desktop-height)]"
+      style={{ 
+        height: heroHeight.mobile,
+        ['--desktop-height' as string]: heroHeight.desktop 
+      }}
       aria-label="Product showcase carousel"
       onMouseEnter={pauseAutoAdvance}
       onMouseLeave={resumeAutoAdvance}
@@ -165,6 +236,10 @@ export default function HeroCarousel() {
     >
       {/* Performance-optimized image loading with memoized components */}
       <div className="relative h-full w-full">
+        {/* Enhanced black and white image treatment */}
+        <div className="absolute inset-0 bg-black/40 mix-blend-color z-[1]" />
+        <div className="absolute inset-0 bg-black/10 z-[2]" />
+        
         {/* Mobile image - ensure fast loading with appropriate quality and size */}
         <HeroImage 
           src={currentItem.image.mobile} 
@@ -178,37 +253,50 @@ export default function HeroCarousel() {
           alt={currentItem.title}
         />
         
-        {/* Z-pattern optimized content overlay with improved gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent">
-          <div className="flex h-full flex-col justify-end px-5 sm:px-8 md:px-12 lg:px-16 pb-20 md:pb-24">
-            <div className="max-w-[85%] md:max-w-[550px]">
-              {/* Headline with improved readability and contrast */}
-              <h1 className="text-balance font-bold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl mb-3 leading-[1.1]">
+        {/* Refined overlay with improved gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/30 z-[3]">
+          {/* Subtle grid pattern overlay for depth */}
+          <div className="absolute inset-0 bg-[url('/grid-pattern.png')] bg-repeat opacity-[0.03]" />
+          
+          <div className="flex h-full flex-col justify-end px-6 sm:px-10 md:px-14 lg:px-20 pb-24 md:pb-28">
+            <div className="max-w-[90%] md:max-w-[570px]">
+              {/* Refined, high-contrast tag */}
+              <div className="inline-block mb-4 sm:mb-5 bg-white py-1 px-2.5 text-black">
+                <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-medium">New Collection</span>
+              </div>
+              
+              {/* Refined headline with improved typography */}
+              <h1 className="font-medium text-white text-4xl sm:text-5xl md:text-6xl mb-4 sm:mb-5 leading-[1.05] tracking-tight">
                 {currentItem.title}
               </h1>
               
-              {/* Clear supporting text with improved line height */}
-              <p className="text-lg sm:text-xl font-medium text-white/90 mb-6 md:mb-8 max-w-md leading-snug">
+              {/* Refined supporting text */}
+              <p className="text-base sm:text-lg font-normal text-zinc-300 mb-8 sm:mb-9 md:mb-10 max-w-md leading-relaxed">
                 {currentItem.subtitle}
               </p>
               
-              {/* High-visibility CTA with improved touch target size and focus states */}
-              <Button 
-                asChild={true}
-                className="h-12 min-w-40 bg-white hover:bg-white/90 focus:bg-white/95 focus:ring-2 focus:ring-offset-2 focus:ring-white/50 text-black text-sm font-bold tracking-wide px-8 transition-colors"
-              >
-                <Link href={currentItem.link}>
-                  {currentItem.cta}
-                </Link>
-              </Button>
+              {/* Refined CTA with subtle hover animation */}
+              <div className="inline-block">
+                <Button 
+                  asChild={true}
+                  className="h-12 min-w-44 bg-white hover:bg-zinc-100 text-black text-[13px] font-medium tracking-wide px-8 transition-all duration-200 rounded-none relative overflow-hidden group"
+                >
+                  <Link href={currentItem.link}>
+                    <span className="relative z-10 inline-flex items-center justify-center w-full group-hover:-translate-x-1 transition-transform duration-200">
+                      {currentItem.cta}
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">→</span>
+                    </span>
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Improved touch-optimized progress indicators with larger tap targets */}
-      <div className="absolute bottom-8 md:bottom-12 left-5 sm:left-8 md:left-12 z-10">
-        <div className="flex items-center gap-3">
+      {/* Refined indicators with improved spacing */}
+      <div className="absolute bottom-10 md:bottom-14 left-6 sm:left-10 md:left-14 lg:left-20 z-10">
+        <div className="flex items-center gap-4">
           {carouselItems.map((item, index) => (
             <CarouselIndicator
               key={item.id}
@@ -217,6 +305,15 @@ export default function HeroCarousel() {
               onClick={() => goToSlide(index)}
             />
           ))}
+        </div>
+      </div>
+      
+      {/* Slide counter - adds sophistication */}
+      <div className="absolute bottom-10 md:bottom-14 right-6 sm:right-10 md:right-14 lg:right-20 z-10">
+        <div className="text-white text-xs tracking-wide">
+          <span className="font-medium">{currentIndex + 1}</span>
+          <span className="mx-1 text-zinc-500">/</span>
+          <span className="text-zinc-400">{carouselItems.length}</span>
         </div>
       </div>
     </div>
